@@ -7,6 +7,10 @@ public class Main {
     // the one who decide whether an application stop.
     private static boolean isQuit = false;
     
+    // admin credentials
+    private static int adminId = 1;
+    private static String adminPass = "admin";
+    
     // who currently logged in
     private static int userID = 1;
     
@@ -37,5 +41,13 @@ public class Main {
     
     public static int getUserID() {
         return userID;
+    }
+    
+    public static int getAdminId() {
+        return adminId;
+    }
+    
+    public static String getAdminPass() {
+        return adminPass;
     }
 }

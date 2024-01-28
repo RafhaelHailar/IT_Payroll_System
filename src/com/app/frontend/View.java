@@ -11,7 +11,9 @@ public class View extends InputHandler{
        MAIN,
        ATTENDANCE,
        SUSPEND,
-       UNSUSPEND
+       UNSUSPEND,
+       CREATE,
+       DELETE
     }
     
     enum UserType {
@@ -74,6 +76,12 @@ public class View extends InputHandler{
                 break;
             case State.UNSUSPEND:
                 renderUnsuspend();
+                break;
+            case State.CREATE:
+                renderCreate();
+                break;
+            case State.DELETE:
+                renderDelete();
         }
         
     }
@@ -95,7 +103,7 @@ public class View extends InputHandler{
                 if (userID > 0) {
                     System.out.println("Welcome " + userID);
                     
-                    if (userID == 1) {
+                    if (userID == Main.getAdminId()) {
                         setUserType(UserType.ADMIN);
                     } else {
                         setUserType(UserType.EMPLOYEE);
@@ -127,6 +135,7 @@ public class View extends InputHandler{
             System.out.print("TYPE NUMBER : ");
         } else {
             System.out.println("EMPLOYEE DETAILS");
+            
         }
     }
     
@@ -143,7 +152,8 @@ public class View extends InputHandler{
         switch (suspendInputData.level) {
             case 1:
                 System.out.println("**SUSPEND EMPLOYEE**");
-                function.displayEmployeeBasicInfo(currResultRowSpan);
+                System.out.println("Type [u]Unsuspend, to unsuspend suspended employees");
+                function.displayAllUnsuspendEmployeeInfo(currResultRowSpan);
                 displayingMoreText();
                 System.out.print("Enter employee id: ");
                 break;
@@ -174,6 +184,47 @@ public class View extends InputHandler{
                 System.out.println("Unsuspension Success!");
                 unSuspendInputData.clear();
                 render();
+                break;
+        }
+    }
+    
+    public void renderCreate() {
+        
+        switch (createInputData.level) {
+            case 1:
+                System.out.println("**CREATE EMPLOYEE**");
+                System.out.print("Enter employee name: ");
+                break;
+            case 2:
+                System.out.print("Enter employee password: ");
+                break;
+            case 3:
+                System.out.print("Enter employee sex ('M' | 'F'): ");
+                break;
+            case 4:
+                System.out.print("Enter employee age: ");
+                break;
+            case 5:
+                System.out.println("Positions id and name: ");
+                createInputData.positionIdLimit = function.displayPositionsName();
+                System.out.print("Enter employee position id: ");
+                break;        
+        }
+    }
+    
+    public void renderDelete() {
+        
+        switch (deleteInputData.level) {
+            case 1:
+                System.out.println("**DELETE EMPLOYEE**");
+                function.displayEmployeeBasicInfo(currResultRowSpan);
+                System.out.print("Enter employee id: ");
+                break;
+            case 2:
+                System.out.print("Confirm Deletion [(Y) YES, input other than (Y) is considered false]: ");
+                break;
+            case 3:
+                deleteInputData.clear();
                 break;
         }
     }

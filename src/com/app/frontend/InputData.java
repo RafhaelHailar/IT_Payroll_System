@@ -28,17 +28,24 @@ public abstract class InputData {
                 case 1:
                     try {
                         userId = Integer.parseInt(data);
-                        this.level++;
-                    } catch (NumberFormatException e ) {
+                    } catch (Exception e ) {
                         System.out.println("Invalid input: " + data + ", please input a valid number!");
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
+                        break;
+                    } 
+                    this.level++;
                     break;
                 case 2:
                     userPassword = data;
                     System.out.println("Logging you in......");
-                    this.login();
+                    
+                    if (Main.getAdminId() == userId) {
+                       if (userPassword.equals(Main.getAdminPass())) {
+                          Main.setUserID(userId);
+                       }
+                    } else {
+                       this.login();
+                    }
+                   
                     this.level++;
                     break;
             }
@@ -76,12 +83,11 @@ public abstract class InputData {
                 case 1:
                     try {
                         employeeId = Integer.parseInt(data);
-                        this.level++;
-                    } catch (NumberFormatException e ) {
+                    } catch (Exception e ) {
                         System.out.println("Invalid input: " + data + ", please input a valid number!");
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
+                        break;
+                    } 
+                    this.level++;
                     break;
                 case 2:
                     try {
@@ -121,5 +127,139 @@ public abstract class InputData {
             System.out.println("Unsuspension " + (result ? "Success" : "Failed") + "!");
         }
     }
+    
+    // create employee input data
+    public static class CreateInputData extends InputData {
+        private String employeeName;
+        private String employeePassword;
+        private char employeeSex;
+        private int employeeAge;
+        private int positionId;
+        public int positionIdLimit;
 
+        public CreateInputData(Function function) {
+            this.function = function;
+        }
+
+        public void addData(String data) {
+            switch (this.level) {
+                case 1:
+                    employeeName = data;
+                    this.level++;
+                    break;
+                case 2:
+                    employeePassword = data;
+                    this.level++;
+                    break;
+                case 3:
+                    char sex = data.charAt(0);
+                    
+                    if (sex != 'M' && sex != 'F') {
+                      System.out.println("Please enter a valid input ('M' | 'F')!");  
+                    } else {
+                        employeeSex = data.charAt(0);
+                        this.level++;
+                    }
+                    
+                    break;
+                case 4:
+                    try {
+                        int age = Integer.parseInt(data);
+                        employeeAge = age;
+                        
+                        if (age < 0) {
+                            System.out.println("Enter a valid age!");
+                            break;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Invalid input: " + data + ", please enter a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 5:
+                    try {
+                        int id = Integer.parseInt(data);
+                        positionId = id;
+                        
+                        // check if the input id is in range
+                        if (id < 1 || id > positionIdLimit) {
+                            System.out.println("Enter a number between 1" + "-" + positionIdLimit + "!");
+                            break;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Invalid input: " + data + ", please enter a valid number!");
+                        break;
+                    }
+                    
+                    System.out.println("Creating employee...");
+                    createEmployee();
+                    this.level++;
+                    break;
+            }
+        }
+        
+                    
+        private void createEmployee() {
+            boolean creationSuccess = function.addEmployee(employeeName, String.valueOf(employeeSex), employeeAge, positionId, employeePassword);
+            
+            if (creationSuccess) {
+                System.out.println("Creation Success!");
+            } else {
+                System.out.println("Creation Failed!");
+            }
+        }
+    }
+    
+    //input data for deleting
+    public static class DeleteInputData extends InputData {
+        private int employeeId;
+        private boolean confirmDelete;
+        
+        public DeleteInputData(Function function) {
+            this.function = function;
+        }
+        
+        public void addData(String data) {
+            switch (this.level) {
+               case 1:
+                    try {
+                        employeeId = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    } 
+                    this.level++;
+                    break;
+                case 2:
+                    try {
+                        confirmDelete = data.toLowerCase().equals("y") || data.toLowerCase().equals("yes");
+
+                        if (confirmDelete) {
+                            System.out.println("Deleting......");
+                            
+                            delete();
+                            this.level++;
+                        } else {
+                            System.out.println("Deleting Cancelled!");
+                            this.clear();
+                        }
+                        
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    break;
+                }
+            }
+        
+            public void delete() {
+                boolean isSuccess = function.deleteEmployee(employeeId);
+                
+                if (isSuccess) {
+                    System.out.println("Deletion Success!");
+                } else {
+                    System.out.println("Deletion Failed!");
+                }
+            }
+    }
 }
