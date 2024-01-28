@@ -267,7 +267,12 @@ public class Function extends DBConnection {
          return false;
      }
      
-     //MY CHANGES BY: dperrr
+     /**
+ 	 * Retrieves and displays information about all active employees.
+ 	 * It also filters the employees that are not suspended
+ 	 * Displays employee ID, name, gender, age, and their respective position.
+ 	 * 
+ 	 */ 
      public void displayAllEmployeeInfo() {
  	    String query = "SELECT * FROM employees "
  	                 + "INNER JOIN positions ON employees.position_id = positions.position_id "
@@ -295,7 +300,11 @@ public class Function extends DBConnection {
  	        System.out.println("Connection Error: " + e.getMessage());
  	    }
  	}
- 	
+     
+ 	/**
+ 	 * Displays the payroll information for employees for the specified month.
+ 	 * The method retrieves attendance and employee details to calculate net and gross salaries.
+ 	 */
  	public void displayEmployeePayroll() {
  	    String query = "SELECT attendances.*, positions.position_pay_per_day, employees.employee_name "
  	            + "FROM attendances "
@@ -337,7 +346,11 @@ public class Function extends DBConnection {
  	    }
  	}
  	
- 	//API FOR ADDING EMPLOYEE
+	/**
+	 * API for adding a new employee to the system.
+	 * Inserts employee information into the 'employees' table, generates an employee ID, 
+	 * adds employee credentials, and initializes attendance records.
+	*/
  	public void addEmployee(String employeeName, String gender, int employeeAge, int positionId, String password) {
  	    String query = "INSERT INTO employees (employee_name, employee_sex, employee_age, position_id) VALUES (?, ?, ?, ?)";
  	    
@@ -373,7 +386,10 @@ public class Function extends DBConnection {
 
  	
  	
- 	// METHOD FOR ADDING EMPLOYEE CREDENTIALS
+ 	/**
+	 * Adds credentials for a new employee to the 'users' table.
+	 *
+	 **/
  	public void addEmployeeCredentials(int employeeId, String password) {
  	    String query = "INSERT INTO users (user_password, employee_id) VALUES (?, ?)";
 
@@ -389,7 +405,9 @@ public class Function extends DBConnection {
  	    }
  	}
  	
- 	
+ 	/**
+     * Adds a new attendance record for the employee with its given ID.
+    */
  	public void addToAttendances(int employeeId) {
  		 String attendanceQuery = "INSERT INTO attendances (employee_id) VALUES (?)";
  		 
@@ -405,7 +423,10 @@ public class Function extends DBConnection {
  	}
  	
  	
- 	//METHOD FOR CHECKING IF THE EMPLOYEE EXISTS IN OUR DATABASE
+ 	/**
+     * Checks if an employee with the given ID exists in the database.
+     * return True if the employee exists, False if not.
+    */
  	private boolean isEmployeeExists(int employeeId) {
  	    String checkQuery = "SELECT COUNT(*) FROM employees WHERE employee_id = ?";
  	    try {
@@ -423,10 +444,12 @@ public class Function extends DBConnection {
  	    }
  	}
  	
- 	//API FOR DELETING EMPLOYEE
+ 	/**
+     * API for deleting an employee with the given ID.
+    */
  	public void deleteEmployee(int employeeId) {
- 		
 
+ 		//Check if the employeeId exist in our Database
  		if (!isEmployeeExists(employeeId)) {
  	        System.out.println("Employee with ID " + employeeId + " does not exist.");
  	        return;
