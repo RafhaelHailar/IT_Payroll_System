@@ -1,19 +1,36 @@
 package com.app.frontend;
 
 import com.app.main.Main;
+import com.app.backend.Function;
+import com.app.frontend.View.State;
 import java.util.Scanner;
 
-public abstract class InputHandler {
+public abstract class InputHandler extends InputData {
+    public static Function function = new Function();
     private static Scanner scan = new Scanner(System.in);
     private static String input;
     
-    private static LoginInputData loginInputData = new LoginInputData();
+    public static LoginInputData loginInputData = new LoginInputData(function);
+    public static SuspendInputData suspendInputData = new SuspendInputData(function,true);
+    public static SuspendInputData unSuspendInputData = new SuspendInputData(function,false);
     
-    private static void getInput() {
+    // for pagination
+    public int currResultRowSpan = 0;
+    
+    // abstract methods for view
+    public abstract void render();
+    public abstract boolean isState(State state);
+    public abstract boolean returnPrevState();
+    public abstract boolean isUserAdmin();
+    public abstract boolean setState(State state);
+    public abstract void displayLogout();
+    public abstract View.State getCurrentState();
+    
+    private void getInput() {
         input = scan.nextLine();
     }
     
-    public static void checkInput() {
+    public void checkInput() {
         boolean isCommand;     
         
         getInput();
@@ -26,74 +43,148 @@ public abstract class InputHandler {
            } else {
                checkValue();
            }
-        }
-        
+        } 
+  
     }
     
-    private static void checkValue() {
+    private void checkValue() {
         String value = input.substring(1);
         System.out.println("The value you enter is: " + value);
+        
+        switch (getCurrentState()) {
+            case View.State.LOGIN:
+                loginInputData.addData(value);
+                break;
+            case View.State.SUSPEND:
+                suspendInputData.addData(value);
+                break;
+            case View.State.UNSUSPEND:
+                unSuspendInputData.addData(value);
+                break;
+        }
+        render();
     }
     
-    private static void runCommand(char c) {
-        boolean isInvalid = false;
+    private void runCommand(char c) {
+        boolean isInvalid = true;
+        boolean showMore = false; // for checking if paginating continues.
+        
         switch (c) {
+            //quitting
             case 'q':
                Main.quit();
                break;  
-            case 'a':
-               if (!View.setState(View.State.LOGIN)) {
-                   isInvalid = true;
-               }
-               break;
+             
+            //logging out
+            case 'l':
+                if (!isState(View.State.LOGIN)) {
+                    System.out.println("Logging you out...");
+                    Main.setUserID(-1);
+                    displayLogout();
+                    isInvalid = false;
+                } 
+                break;
+            
+            //backing
+            case 'b':
+                // if returning to previous state failed then the command is invalid
+                if (returnPrevState()) {
+                    isInvalid = false;
+                }
+                break;
+                
+            // invalid command
             default: 
                 isInvalid = true;
         }
         
+        //admin only commands
+        if (isUserAdmin()) {
+            switch(c) {
+                //attendance setting
+                case 'a':
+                    isInvalid = !setState(View.State.ATTENDANCE); // if already in the attendance setting, then the command is invalid.
+                    break;
+
+                //suspend employee
+                case 's':
+                    isInvalid = !setState(View.State.SUSPEND); // same above.
+                    break;
+                    
+                //unsuspend employee
+                case 'u':
+                    if (getCurrentState() == View.State.SUSPEND) {
+                        isInvalid = !setState(View.State.UNSUSPEND);
+                    }
+                    break;
+                    
+                //display by position
+                case 'p':
+                    try {
+                        int position_id = Integer.parseInt(String.valueOf(input.charAt(2)));
+                        function.displayPositionsName();
+                        function.displayEmployeeByPosition(position_id,currResultRowSpan);
+                        isInvalid = false;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Input a valid number");
+                        isInvalid = true;
+                    } catch (Exception e) {
+                        isInvalid = true;
+                        System.out.println(e);
+                        System.out.println("Please enter a valid format: 'p [position id]'");
+                    }
+                    System.out.print("TYPE NUMBER: ");
+                    break;
+                    
+                case 'e': 
+                    function.expi();
+                    break;
+                
+                // more, show more results from the data returned
+                case 'm': 
+                    showMore = true;
+                    currResultRowSpan++;
+                    function.callLastDisplayMethod(currResultRowSpan);
+                    isInvalid = false;
+                    break;
+                    
+                // MORE, the opposite of 'm' go back to previous results
+                case 'M':
+                    showMore = true;
+                    
+                    if (currResultRowSpan > 0) {
+                        currResultRowSpan--;
+                    }
+                    
+                    function.callLastDisplayMethod(currResultRowSpan);
+                    isInvalid = false;
+                    break;
+                    
+                //display emploees basic info
+                case 'd':
+                    function.displayEmployeeBasicInfo(currResultRowSpan);      
+                    
+                    if (function.dataDisplaying) {
+                        System.out.println("Type [m]More to show more results...");
+                    }
+                    
+                    isInvalid = false;
+                    break;
+                    
+            } 
+        }
+        
         if (isInvalid) {
             System.out.println("Invalid command: '" + c + "'");
+            render();
         }
-    }
-}
-
-// inputs data
-class LoginInputData {
-    private int userId = -1;
-    private String userPassword = "";
-    static int level = 1;
-    
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public String getUserPassword() {
-        return userPassword;
-    }
-
-    public void setUserPassword(String userPassword) {
-        this.userPassword = userPassword;
-    }
-    
-    public void addData(String data) {
-        switch (level) {
-            case 1:
-                try {
-                    this.userId = Integer.parseInt(data);
-                } catch (NumberFormatException e ) {
-                    System.out.println("Invalid input: " + data + ", please input a valid number!");
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
+        
+        // set to true if we want to continue displaying data's, that are limit.
+        function.dataDisplaying = showMore;
+        
+        if (!showMore) {
+            currResultRowSpan = 0;
         }
     }
     
-    public void clear() {
-        this.userId = -1;
-        this.userPassword = "";
-        level = 1;
-    }
 }

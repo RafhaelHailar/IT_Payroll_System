@@ -20,7 +20,6 @@ public abstract class DBConnection {
         try {
             Class.forName(DRIVER);
             con = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            System.out.println("Connection Success!");
         } catch (Exception e) {
             System.out.println(e);
         }
