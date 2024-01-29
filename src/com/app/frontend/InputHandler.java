@@ -214,7 +214,7 @@ public abstract class InputHandler extends InputData {
                     System.out.println("*\t\t\t\t\t\t\t\t   *");
                     System.out.println("********************************************************************");
                     System.out.println("Employee ID\t  Employee Name\t\tNet Salary\tGross Salary");
-                    function.displayEmployeePayroll(0);
+                    function.displayEmployeeSalary(0);
                     
                     showMore = true;
                     isInvalid = false;
