@@ -10,15 +10,19 @@ public abstract class InputHandler extends InputData {
     private static Scanner scan = new Scanner(System.in);
     private static String input;
     
+    //track previous command
+    private String prevCommand = "";
+    
     //input data holders
     public static LoginInputData loginInputData = new LoginInputData(function);
     public static SuspendInputData suspendInputData = new SuspendInputData(function,true);
     public static SuspendInputData unSuspendInputData = new SuspendInputData(function,false);
     public static CreateInputData createInputData = new CreateInputData(function);
     public static DeleteInputData deleteInputData = new DeleteInputData(function);
+    public static ToViewEmployeeInputData toViewEmployeeInputData = new ToViewEmployeeInputData(function);
     
     // for pagination
-    public int currResultRowSpan = 0;
+    public static int currResultRowSpan = 0;
     
     // abstract methods for view
     public abstract void render();
@@ -52,6 +56,7 @@ public abstract class InputHandler extends InputData {
     }
     
     private void checkValue() {
+        boolean toRender = true;
         String value = input.substring(1);
         System.out.println("The value you enter is: " + value);
         
@@ -71,8 +76,14 @@ public abstract class InputHandler extends InputData {
             case View.State.DELETE:
                 deleteInputData.addData(value);
                 break;
+            case View.State.TOVIEWEMPLOYEE:
+                toViewEmployeeInputData.addData(value);
+                break;
         }
-        render();
+        
+        if (toRender) {
+            render();
+        }
     }
     
     private void runCommand(String c) {
@@ -109,22 +120,32 @@ public abstract class InputHandler extends InputData {
         }
         
         //admin only commands
-        if (isUserAdmin()) {
+        if (isUserAdmin() && (Main.getUserID() != -1)) {
+            
+            // resetting page, when switching state.     
+            if (!prevCommand.equals(c) && !(c.equals("m") || c.equals("M"))) {
+                currResultRowSpan = 0;
+                prevCommand = c;
+            }
+            
             switch(c) {
                 //attendance setting
                 case "a":
                     isInvalid = !setState(View.State.ATTENDANCE); // if already in the attendance setting, then the command is invalid.
+                    showMore = true;
                     break;
 
                 //suspend employee
                 case "s":
                     isInvalid = !setState(View.State.SUSPEND); // same above.
+                    showMore = true;
                     break;
                     
                 //unsuspend employee
                 case "u":
                     if (getCurrentState() == View.State.SUSPEND) {
                         isInvalid = !setState(View.State.UNSUSPEND);
+                        showMore = true;
                     }
                     break;
                     
@@ -148,22 +169,29 @@ public abstract class InputHandler extends InputData {
                 
                 // more, show more results from the data returned
                 case "m": 
-                    showMore = true;
-                    currResultRowSpan++;
-                    function.callLastDisplayMethod(currResultRowSpan);
-                    isInvalid = false;
+                    if (function.dataDisplaying) {
+                        if (currResultRowSpan + 1 < Function.totalPage) {
+                            currResultRowSpan++;
+                        }
+                        function.callLastDisplayMethod(currResultRowSpan);
+                        isInvalid = false;
+                        
+                        showMore = true;
+                    }
                     break;
                     
                 // MORE, the opposite of 'm' go back to previous results
                 case "M":
-                    showMore = true;
-                    
-                    if (currResultRowSpan > 0) {
-                        currResultRowSpan--;
+                    if (function.dataDisplaying) {
+                        if (currResultRowSpan > 0) {
+                            currResultRowSpan--;
+                        }
+
+                        function.callLastDisplayMethod(currResultRowSpan);
+                        isInvalid = false;
+                        
+                        showMore = true;
                     }
-                    
-                    function.callLastDisplayMethod(currResultRowSpan);
-                    isInvalid = false;
                     break;
                     
                 // create employee
@@ -174,33 +202,31 @@ public abstract class InputHandler extends InputData {
                     
                 //display emploees basic info
                 case "d":
-                    function.displayEmployeeBasicInfo(currResultRowSpan);      
-                    
-                    if (function.dataDisplaying) {
-                        System.out.println("Type [m]More to show more results...");
-                    }
-                    
-                    isInvalid = false;
+                    isInvalid = !setState(View.State.TOVIEWEMPLOYEE);
+                    showMore = true;
                     break;
                     
                //display employees payroll
                 case "dp":
-                    function.displayEmployeePayroll();
+                    System.out.println("********************************************************************");
+                    System.out.println("*\t\t\t\t\t\t\t\t   *");
+                    System.out.println("*\t\t     Payroll for the month of December\t           *");
+                    System.out.println("*\t\t\t\t\t\t\t\t   *");
+                    System.out.println("********************************************************************");
+                    System.out.println("Employee ID\t  Employee Name\t\tNet Salary\tGross Salary");
+                    function.displayEmployeePayroll(0);
                     
+                    showMore = true;
                     isInvalid = false;
                     break;
                
                //delete employee
                 case "de":
                     setState(View.State.DELETE);
+                    showMore = true;
                     isInvalid = false;
                     break;
             } 
-        }
-        
-        if (isInvalid) {
-            System.out.println("Invalid command: '" + c + "'");
-            render();
         }
         
         // set to true if we want to continue displaying data's, that are limit.
@@ -208,10 +234,12 @@ public abstract class InputHandler extends InputData {
         
         if (!showMore) {
             currResultRowSpan = 0;
-        } else {
-            System.out.println("Type [m]More to show more results...");
+        } 
+            
+        if (isInvalid) {
+            System.out.println("Invalid command: '" + c + "'");
+            render();
         }
-        
     }
     
 }

@@ -1,15 +1,25 @@
 package com.app.backend;
 
+import com.app.frontend.View;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
+import com.app.main.Employee;
 
 public class Function extends DBConnection {
      // for pagination
-     private int rowLimit = 5; //the row limit. 
+     public int rowLimit = 5; //the row limit. 
      private static int funcId = -1; //remembering the last display method called.
      private int positionIdEntered;
      public static boolean dataDisplaying = false;
+     public static int totalPage = 0; //limit of pagination.
+     
+     // benefits
+     private final int SSS = 1000;
+     private final int MEDICARE = 500;
+
+     private float netSalary = 0;
+     private int grossSalary = 0;
+     private int noOfHoursLate;
      
      // create api
      public void createEmployee(String employeeName,String employeeSex,int employeeAge,int positionId) {
@@ -105,14 +115,80 @@ public class Function extends DBConnection {
      
      // read api's
         
+    // get specific employee data
+    public Employee getEmployeeData(int employeeId) {
+        String query = "SELECT * FROM employees INNER JOIN positions ON " 
+                + "employees.position_id = positions.position_id WHERE employee_id = ?";
+        Employee employeeData = new Employee();
+        
+        try {
+            connect();
+            
+            prep = con.prepareStatement(query);
+            prep.setInt(1,employeeId);
+            
+            result = prep.executeQuery();
+            
+            result.next();
+            
+            String name = result.getString("employee_name");
+            String sex = result.getString("employee_sex");
+            int age = result.getInt("employee_age");
+            int positionId = result.getInt("position_id");
+            String positionName = result.getString("position_name");
+            String hiredDate = result.getString("employee_hired_date");
+            boolean isSuspended = result.getBoolean("employee_is_suspended");
+            int salaryPerDay = result.getInt("position_pay_per_day");
+            
+            employeeData.setName(name);
+            employeeData.setSex(sex);
+            employeeData.setAge(age);
+            employeeData.setPositionId(positionId);
+            employeeData.setPositionName(positionName);
+            employeeData.setHiredDate(hiredDate);
+            employeeData.setIsSuspended(isSuspended);
+            employeeData.setIsSuccess(true);
+            employeeData.setSalaryPerDay(salaryPerDay);
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        
+        return employeeData;
+    }
+      
+    // FOR READING TOTAL ROW
+    private void getTotalPage(String table,String condition) {
+        String query = "SELECT COUNT(*) FROM " + table + " WHERE " + condition;
+        int total = 0;
+        
+        try {
+            connect();
+          
+            state = con.createStatement();
+            result = state.executeQuery(query);
+            
+            result.next();
+            total = result.getInt(1);
+            
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        
+        totalPage = (int) Math.ceil(((double) total) / rowLimit);
+        
+        System.out.printf("\t\t\t\t\t\t\t\t\tPAGE: %-10s\n",View.currResultRowSpan + 1 + "/" + (Function.totalPage));
+    }
+       
     //METHOD FOR CHECKING IF THE EMPLOYEE EXISTS IN OUR DATABASE
-    private boolean isEmployeeExists(int employeeId) {
+    public boolean isEmployeeExists(int employeeId) {
         String checkQuery = "SELECT COUNT(*) FROM employees WHERE employee_id = ?";
         try {
             connect();
             prep = con.prepareStatement(checkQuery);
             prep.setInt(1, employeeId);
-            ResultSet result = prep.executeQuery();
+            result = prep.executeQuery();
             result.next();
             int count = result.getInt(1);
             con.close();
@@ -123,22 +199,18 @@ public class Function extends DBConnection {
         }
     }
     
-     public void displayEmployeePayroll() {
+     public void displayEmployeePayroll(int rowSpan) {
         String query = "SELECT attendances.*, positions.position_pay_per_day, employees.employee_name "
                 + "FROM attendances "
                 + "INNER JOIN employees ON attendances.employee_id = employees.employee_id "
                 + "INNER JOIN positions ON positions.position_id = employees.position_id "
-                + "ORDER BY employee_id";
-
+                + "ORDER BY employee_id LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
+        
+        getTotalPage("employees","1"); // get the total page, pagination can move.
+        
         int netSalary = 0;
         float grossSalary = 0;
         int lateDeductions = 50;
-        System.out.println("********************************************************************");
-        System.out.println("*\t\t\t\t\t\t\t\t   *");
-        System.out.println("*\t\t     Payroll for the month of December\t           *");
-        System.out.println("*\t\t\t\t\t\t\t\t   *");
-        System.out.println("********************************************************************");
-        System.out.println("Employee ID\t  Employee Name\t\tNet Salary\tGross Salary");
 
         try {
             connect();
@@ -162,13 +234,18 @@ public class Function extends DBConnection {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        funcId = 5;
+        dataDisplaying = true;
     }
      
      public void displayAllUnsuspendEmployeeInfo(int rowSpan) {
         String query = "SELECT * FROM employees "
                      + "INNER JOIN positions ON employees.position_id = positions.position_id "
                      + "WHERE employee_is_suspended = 0 LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
-
+        
+        getTotalPage("employees","employee_is_suspended = 0"); // get the total page, pagination can move.
+        
         try {
             connect();
             state = con.createStatement();
@@ -225,6 +302,8 @@ public class Function extends DBConnection {
        String query = "SELECT * FROM employees INNER JOIN positions "
               + "ON employees.position_id = positions.position_id LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
        
+       getTotalPage("employees","1"); // get the total page, pagination can move.
+       
        try {
            connect();
            state = con.createStatement();
@@ -258,6 +337,8 @@ public class Function extends DBConnection {
                  + "ON employees.position_id = positions.position_id WHERE employee_is_suspended = 1 "
                  + "LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
          
+         getTotalPage("employees","employee_is_suspended = 1"); // get the total page, pagination can move.
+         
          try {
              connect();
              
@@ -290,6 +371,8 @@ public class Function extends DBConnection {
          String query = "SELECT * FROM employees INNER JOIN positions "
                  + "ON employees.position_id = positions.position_id WHERE employees.position_id = " + positionId
                  + " LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
+         
+         getTotalPage("employees","position_id = " + positionId); // get the total page, pagination can move.
          
          try {
              connect();
@@ -351,21 +434,26 @@ public class Function extends DBConnection {
      }
      
      public void callLastDisplayMethod(int currRowSpan) {
-         switch (funcId) {
-             case 0:
-                 displayEmployeeBasicInfo(currRowSpan);
-                 break;
-             case 1:
-                 break;
-             case 2:
-                 displaySuspendedEmployee(currRowSpan);
-                 break;
-             case 3:
-                 displayAllUnsuspendEmployeeInfo(currRowSpan);
-                 break;
-             case 4:
-                 displayEmployeeByPosition(positionIdEntered,currRowSpan);
-                 break;
+         if (currRowSpan + 1 <= Function.totalPage) {
+            switch (funcId) {
+                case 0:
+                    displayEmployeeBasicInfo(currRowSpan);
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    displaySuspendedEmployee(currRowSpan);
+                    break;
+                case 3:
+                    displayAllUnsuspendEmployeeInfo(currRowSpan);
+                    break;
+                case 4:
+                    displayEmployeeByPosition(positionIdEntered,currRowSpan);
+                    break;
+                case 5:
+                    displayEmployeePayroll(currRowSpan);
+                    break;
+            }
          }
          
         if (dataDisplaying) {

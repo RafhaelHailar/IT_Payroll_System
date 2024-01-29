@@ -1,8 +1,7 @@
 package com.app.frontend;
 
 import java.util.ArrayList;
-import com.app.main.Main;
-
+import com.app.main.*;
 
 public class View extends InputHandler{
     // PROGRAM STATES
@@ -13,7 +12,9 @@ public class View extends InputHandler{
        SUSPEND,
        UNSUSPEND,
        CREATE,
-       DELETE
+       DELETE,
+       TOVIEWEMPLOYEE,
+       VIEWEMPLOYEE
     }
     
     enum UserType {
@@ -24,6 +25,9 @@ public class View extends InputHandler{
     private State currentState = State.MAIN;
     private UserType loggedAs = UserType.ADMIN; 
     private ArrayList<State> routeHistory = new ArrayList<State>();
+    
+    //employee viewing
+    private static int employeeViewingId = -1;
     
     public View() {
         routeHistory.add(currentState);
@@ -82,6 +86,13 @@ public class View extends InputHandler{
                 break;
             case State.DELETE:
                 renderDelete();
+                break;
+            case State.TOVIEWEMPLOYEE:
+                renderToViewEmployee();
+                break;
+            case State.VIEWEMPLOYEE:
+                renderViewEmployee();
+                break;
         }
         
     }
@@ -131,7 +142,9 @@ public class View extends InputHandler{
             System.out.println("[a] SET EMPLOYEES ATTENDANCE");
             System.out.println("[p <position id>] DISPLAY EMPLOYEES BASIC INFO FILTERED BY GIVEN POSITION ID");
             System.out.println("[s] SUSPEND EMPLOYEE");
-            System.out.println("[5] SEE ALL EMPLOYEE");   
+            System.out.println("[de] DELETE EMPLOYEE");
+            System.out.println("[c] CREATE EMPLOYEE");
+            System.out.println("[dp] DISPLAY EMPLOYEES PAYROLL");
             System.out.print("TYPE NUMBER : ");
         } else {
             System.out.println("EMPLOYEE DETAILS");
@@ -142,7 +155,7 @@ public class View extends InputHandler{
     private void renderAttendance() {
         System.out.println("**SET EMPLOYEE ATTENDANCE**");
         function.displayEmployeeBasicInfo(currResultRowSpan);
-        displayingMoreText();
+       
         System.out.print("Enter employee id: ");
     }
     
@@ -218,6 +231,7 @@ public class View extends InputHandler{
             case 1:
                 System.out.println("**DELETE EMPLOYEE**");
                 function.displayEmployeeBasicInfo(currResultRowSpan);
+                displayingMoreText();
                 System.out.print("Enter employee id: ");
                 break;
             case 2:
@@ -227,6 +241,103 @@ public class View extends InputHandler{
                 deleteInputData.clear();
                 break;
         }
+    }
+    
+    public void renderToViewEmployee() {
+        switch (toViewEmployeeInputData.level) {
+            case 1:
+                System.out.println("------EMPLOYEES ");
+                function.displayEmployeeBasicInfo(currResultRowSpan);
+                System.out.print("Enter employee id: ");
+                break;
+            case 2:
+                toViewEmployeeInputData.clear();
+                if (employeeViewingId > -1) { 
+                    setState(State.VIEWEMPLOYEE);
+                }
+                break;
+        }
+    }
+    
+    public void renderViewEmployee() {
+        System.out.println("Viewing Employee");
+        System.out.println("Viewing " + employeeViewingId + " data");
+        Employee employeeData = function.getEmployeeData(employeeViewingId);
+        
+        if (!employeeData.getIsSuccess()) {
+           System.out.println("Data can not retrieve!");
+           View.setEmployeeViewing(-1);
+           setState(State.TOVIEWEMPLOYEE);
+           return;
+        }
+        
+        String name,sex,hiredDate,positionName;
+        int age,positionId,salaryPerDay;
+        boolean isSuspended;
+        
+        name = employeeData.getName();
+        sex = employeeData.getSex();
+        hiredDate = employeeData.getHiredDate();
+        positionName = employeeData.getPositionName();
+        age = employeeData.getAge();
+        positionId = employeeData.getPositionId();
+        isSuspended = employeeData.isIsSuspended();
+        salaryPerDay = employeeData.getSalaryPerDay();
+        
+        int spacing = 50;
+        int phpSpacing = 15;
+        
+        ArrayList<Integer> lengths = new ArrayList<Integer>();
+        int maxLength = 0;
+        
+        lengths.add((":EMPLOYEE " + employeeViewingId).length() + spacing); 
+        lengths.add((name).length() + spacing);
+        lengths.add((positionName).length() + spacing);
+        lengths.add(("P"+ salaryPerDay +"/day").length() + spacing);
+        lengths.add(("May 1-30 2023").length() + spacing);
+        lengths.add(("20 day").length() + spacing);
+        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
+        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
+        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
+        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
+        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
+        
+        for (Integer length: lengths) {
+            if (length > maxLength) {
+                maxLength = length;
+            }
+        }
+        
+        System.out.printf("%-"+ spacing +"s%s\n"," ",":EMPLOYEE " + employeeViewingId);
+        System.out.println(" ");
+        System.out.printf("%-"+ spacing +"s%s\n","Employee Name:",name);
+        System.out.printf("%-"+ spacing +"s%s\n", "Company Position:",positionName);
+        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Salary Rate: ","Php:","P" + formatNumber(salaryPerDay) + "/day");
+        drawCharacterNTimes('*',maxLength);
+        System.out.printf("%-"+ spacing +"s%s\n", "Date Covered:","May 1-30 2023");
+        System.out.printf("%-"+ spacing +"s%s\n", "Total Number of Days Present:", "20 day");
+        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Gross Income: ","Php:","P" + formatNumber(2300500));
+        System.out.println("Deductions");
+        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Tax: ","Php:","P" + formatNumber(2300500));
+        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    SSS: ","Php:","P" + formatNumber(2300500));
+        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Medicare: ","Php:","P" + formatNumber(2300500));
+        drawCharacterNTimes('*',maxLength);
+        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Net Income: ","Php:","P" + formatNumber(2300500));
+        /*
+                                          :EMPLOYEE 22313
+  
+  Employee Name:                          Marco Pol. Leo
+  Salary Rate:                    Php:    P1,500/day
+  *******************************************************
+  Date Covered:                           May 1-30 2023
+  Total Number of Days Present:           20 day         
+  Gross Income:                   Php:    P2,300,500
+  Deductions:            
+      Tax:                        Php:    P5,000
+      SSS:                        Php:    P6,300
+      Medicare:                   Php:    P300
+  *******************************************************
+  Net Income:                     Php:    P3,000,000 */
     }
     
     public void displayLogout() {
@@ -259,6 +370,12 @@ public class View extends InputHandler{
             case State.UNSUSPEND:
                 unSuspendInputData.clear();
                 break;
+            case State.CREATE:
+                createInputData.clear();
+                break;
+            case State.DELETE:
+                deleteInputData.clear();
+                break;
         }         
     }
     
@@ -284,6 +401,45 @@ public class View extends InputHandler{
         }
         
         return result;
+    }
+    
+    //draw character n times
+    private void drawCharacterNTimes(char c,int n) {
+        for (int i = 0;i < n;i++) {
+            System.out.print(c);
+        }
+        System.out.print("\n");
+    }
+    
+    //number formatter
+    private String formatNumber(int number) {
+        String result = "";
+        
+        String strNumber = String.valueOf(number);
+        
+        for (int i = strNumber.length() - 1;i >= 0;i--) {
+            boolean addComma = false;
+            if ((strNumber.length() - i) % 3 == 0 && i > 0) {
+                try {
+                    // since ascii is 1-255, if the charAt returns below 0 then the character does not found.
+                    if (strNumber.charAt(i - 1) > 0) {
+                        addComma = true;
+                    }
+                } catch(Exception e) {}
+            }
+            
+            result = strNumber.charAt(i) + result;
+            if (addComma) {
+                result = "," + result;
+            }
+        }
+        
+        return result;
+    }
+    
+    //set the employee we are going to view
+    public static void setEmployeeViewing(int employeeId) {
+        employeeViewingId = employeeId;
     }
     
     //clear routes history

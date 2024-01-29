@@ -18,7 +18,6 @@ public class Main {
         // Starting displays
         System.out.println("IT Payroll System");
         System.out.println("*To enter a value start with (\")");
-//        System.out.println("*To quit the application press 'q'");
         
         View view = new View();     
        // Function function = new Function();

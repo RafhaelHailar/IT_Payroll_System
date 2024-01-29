@@ -3,6 +3,7 @@ package com.app.frontend;
 
 import com.app.backend.Function;
 import com.app.main.Main;
+import com.app.main.Employee;
 
 public abstract class InputData {
     int level = 1;
@@ -261,5 +262,35 @@ public abstract class InputData {
                     System.out.println("Deletion Failed!");
                 }
             }
+    }
+    
+    //input data for viewing specific employee
+    public static class ToViewEmployeeInputData extends InputData {   
+        private int employeeId;
+        public ToViewEmployeeInputData(Function function) {
+            this.function = function;
+        }
+        
+        public void addData(String data) {
+            switch (this.level) {
+                case 1:  
+                    try {
+                        employeeId = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + employeeId + ", please input a valid number!");
+                    }
+
+                    boolean employeeExists = function.isEmployeeExists(employeeId);
+                    
+                    if (!employeeExists) {
+                        System.out.println("Employee ID: " + employeeId + " does not exist.");
+                    } else {
+                        View.setEmployeeViewing(employeeId);
+                        this.level++;
+                    }
+                    break;
+            }
+        }
+        
     }
 }
