@@ -66,31 +66,31 @@ public class View extends InputHandler{
     public void render() {
         System.out.println(routeHistory + " current state is: " + currentState);
         switch (currentState) {
-            case State.LOGIN:
+            case LOGIN:
                 renderLogin();
                 break;
-            case State.MAIN:
+            case MAIN:
                 renderMain();
                 break;
-            case State.ATTENDANCE:
+            case ATTENDANCE:
                 renderAttendance();
                 break;
-            case State.SUSPEND:
+            case SUSPEND:
                 renderSuspend();
                 break;
-            case State.UNSUSPEND:
+            case UNSUSPEND:
                 renderUnsuspend();
                 break;
-            case State.CREATE:
+            case CREATE:
                 renderCreate();
                 break;
-            case State.DELETE:
+            case DELETE:
                 renderDelete();
                 break;
-            case State.TOVIEWEMPLOYEE:
+            case TOVIEWEMPLOYEE:
                 renderToViewEmployee();
                 break;
-            case State.VIEWEMPLOYEE:
+            case VIEWEMPLOYEE:
                 renderViewEmployee();
                 break;
         }
@@ -153,10 +153,36 @@ public class View extends InputHandler{
     }
     
     private void renderAttendance() {
-        System.out.println("**SET EMPLOYEE ATTENDANCE**");
-        function.displayEmployeeBasicInfo(currResultRowSpan);
-       
-        System.out.print("Enter employee id: ");
+        switch (attendanceInputData.level) {
+            case 1:
+                System.out.println("**SET EMPLOYEE ATTENDANCE**");
+                function.displayEmployeeBasicInfo(currResultRowSpan);
+               
+                System.out.print("Enter employee id: ");
+                break;
+            case 2:
+                System.out.print("Enter year: ");
+                break;
+            case 3:
+                System.out.print("Enter month id ([1] January - [12] December): ");
+                break;
+            case 4:
+                System.out.print("Enter total days present: ");
+                break;
+            case 5:
+                System.out.print("Enter total days absent: ");
+                break;
+            case 6:
+                System.out.print("Enter total days late: ");
+                break;
+            case 7:
+                System.out.print("Enter total hours late: ");
+                break;
+            case 8:
+                attendanceInputData.clear();
+                render();
+                break;
+        }
     }
     
     
@@ -364,17 +390,20 @@ public class View extends InputHandler{
     
     private void resetInputData() {
         switch (currentState) {
-            case State.SUSPEND:
+            case SUSPEND:
                 suspendInputData.clear();
                 break;
-            case State.UNSUSPEND:
+            case UNSUSPEND:
                 unSuspendInputData.clear();
                 break;
-            case State.CREATE:
+            case CREATE:
                 createInputData.clear();
                 break;
-            case State.DELETE:
+            case DELETE:
                 deleteInputData.clear();
+                break;
+            case ATTENDANCE:
+                attendanceInputData.clear();
                 break;
         }         
     }

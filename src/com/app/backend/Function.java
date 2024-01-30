@@ -602,6 +602,75 @@ public class Function extends DBConnection {
          return false;
      }
      
+     private int getAttendanceId(int employeeId,int year,String month) {
+         String query = "SELECT attendance_id FROM attendances WHERE employee_id = ? AND year = ? AND month = ?";
+         int id = -1;
+         
+         try {
+             connect();
+             
+             prep = con.prepareStatement(query);
+             prep.setInt(1, employeeId);
+             prep.setInt(2, year);
+             prep.setString(3, month);
+             result = prep.executeQuery();
+             
+             result.next();
+             
+             id = result.getInt("attendance_id");
+             
+             con.close();
+         } catch (Exception e) {
+             System.out.println(e);
+         }
+         
+         return id;
+     }
+    
+     public boolean setAttendance(int employeeId,int year,String month,int daysPresent,int daysAbsent,int daysLate,int hoursLate) {
+         int attendanceId = getAttendanceId(employeeId,year,month);
+         
+         boolean isSuccess = false;
+         
+         String query = "INSERT INTO attendances (employee_id,year,month,no_of_present,no_of_absent,no_of_late,no_of_hours_late) "
+                 + "VALUES (?,?,?,?,?,?,?)";
+         System.out.println("ATTENDANCE ID: " + attendanceId);
+         try {
+             connect();
+             
+             if (attendanceId > -1) {
+                 query = "UPDATE attendances SET no_of_present = ?,no_of_absent = ?,no_of_late = ?,no_of_hours_late = ? WHERE attendance_id = " + attendanceId;
+                 
+                 prep = con.prepareStatement(query);
+                 prep.setInt(1, daysPresent);
+                 prep.setInt(2, daysAbsent);
+                 prep.setInt(3, daysLate);
+                 prep.setInt(4, hoursLate);
+                 
+                 prep.executeUpdate();
+             } else {
+                 prep = con.prepareStatement(query);
+                 prep.setInt(1, employeeId);
+                 prep.setInt(2, year);
+                 prep.setString(3, month);
+                 prep.setInt(4, daysPresent);
+                 prep.setInt(5, daysAbsent);
+                 prep.setInt(6, daysLate);
+                 prep.setInt(7, hoursLate);
+                 
+                 prep.executeUpdate();
+             }
+             
+             con.close();
+             
+             isSuccess = true;
+         } catch (Exception e) {
+             System.out.println(e);
+         }
+         
+         return isSuccess;
+     }
+     
      //delete api's
      
      /**

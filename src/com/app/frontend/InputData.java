@@ -293,4 +293,107 @@ public abstract class InputData {
         }
         
     }
+    
+    //input data for setting employee attendance
+    public static class AttendanceInputData extends InputData {
+        private int employeeId,year,daysPresent,
+                daysAbsent,daysLate,hoursLate;
+        private String month;
+
+        public AttendanceInputData(Function function) {
+            this.function = function;
+        }
+        
+        public void addData(String data) {
+            switch (this.level) {
+                case 1:
+                    try {
+                        employeeId = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + employeeId + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 2:
+                    try {
+                        year = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 3:
+                    String[] availableMonths = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+                    
+
+                    try {
+                        int index  = Integer.parseInt(data);
+                        month = availableMonths[index - 1];
+                    } catch (NumberFormatException e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    } catch (IndexOutOfBoundsException e) {
+                        System.out.println("Please only enter a number between 1 - 12");
+                        break;
+                    } catch (Exception e) {
+                        System.out.println(e);
+                        break;
+                    }
+                       
+                    this.level++;
+
+                    break; 
+                case 4:
+                    try {
+                        daysPresent = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 5:
+                    try {
+                        daysAbsent = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 6:
+                    try {
+                        daysLate = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 7:
+                    try {
+                        hoursLate = Integer.parseInt(data);
+                        setAttendance();
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+            }
+        }
+        
+        public void setAttendance() {
+            boolean isSuccess = function.setAttendance(employeeId, year, month, daysPresent, daysAbsent, daysLate, hoursLate);
+            
+            if (isSuccess) {
+                System.out.println("Setting attendance success!...");
+            } else {
+                System.out.println("Setting attendance failed!...");
+            }
+            
+        }
+    }
 }

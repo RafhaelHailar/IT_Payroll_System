@@ -19,6 +19,7 @@ public abstract class InputHandler extends InputData {
     public static SuspendInputData unSuspendInputData = new SuspendInputData(function,false);
     public static CreateInputData createInputData = new CreateInputData(function);
     public static DeleteInputData deleteInputData = new DeleteInputData(function);
+    public static AttendanceInputData attendanceInputData = new AttendanceInputData(function);
     public static ToViewEmployeeInputData toViewEmployeeInputData = new ToViewEmployeeInputData(function);
     
     // for pagination
@@ -61,23 +62,26 @@ public abstract class InputHandler extends InputData {
         System.out.println("The value you enter is: " + value);
         
         switch (getCurrentState()) {
-            case View.State.LOGIN:
+            case LOGIN:
                 loginInputData.addData(value);
                 break;
-            case View.State.SUSPEND:
+            case SUSPEND:
                 suspendInputData.addData(value);
                 break;
-            case View.State.UNSUSPEND:
+            case UNSUSPEND:
                 unSuspendInputData.addData(value);
                 break;
-            case View.State.CREATE:
+            case CREATE:
                 createInputData.addData(value);
                 break;
-            case View.State.DELETE:
+            case DELETE:
                 deleteInputData.addData(value);
                 break;
-            case View.State.TOVIEWEMPLOYEE:
+            case TOVIEWEMPLOYEE:
                 toViewEmployeeInputData.addData(value);
+                break;
+            case ATTENDANCE:
+                attendanceInputData.addData(value);
                 break;
         }
         
