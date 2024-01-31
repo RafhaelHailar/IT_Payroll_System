@@ -21,6 +21,8 @@ public abstract class InputHandler extends InputData {
     public static DeleteInputData deleteInputData = new DeleteInputData(function);
     public static AttendanceInputData attendanceInputData = new AttendanceInputData(function);
     public static ToViewEmployeeInputData toViewEmployeeInputData = new ToViewEmployeeInputData(function);
+    public static SalaryInputData salaryInputData = new SalaryInputData(function);
+    public static ChangeDateInputData changeDateInputData = new ChangeDateInputData(function);
     
     // for pagination
     public static int currResultRowSpan = 0;
@@ -48,7 +50,9 @@ public abstract class InputHandler extends InputData {
             
            if (isCommand) {
                String[] c = input.split(" ");
-               runCommand(c[0]);
+               if (c.length > 0) {
+                runCommand(c[0]);
+               }
            } else {
                checkValue();
            }
@@ -57,7 +61,6 @@ public abstract class InputHandler extends InputData {
     }
     
     private void checkValue() {
-        boolean toRender = true;
         String value = input.substring(1);
         System.out.println("The value you enter is: " + value);
         
@@ -83,11 +86,15 @@ public abstract class InputHandler extends InputData {
             case ATTENDANCE:
                 attendanceInputData.addData(value);
                 break;
+            case TOVIEWSALARIES:
+                salaryInputData.addData(value);
+                break;
+            case VIEWEMPLOYEE:
+                changeDateInputData.addData(value);
+                break;
         }
         
-        if (toRender) {
-            render();
-        }
+        render();
     }
     
     private void runCommand(String c) {
@@ -125,7 +132,7 @@ public abstract class InputHandler extends InputData {
         
         //admin only commands
         if (isUserAdmin() && (Main.getUserID() != -1)) {
-            
+            String[] inputs = input.split(" ");
             // resetting page, when switching state.     
             if (!prevCommand.equals(c) && !(c.equals("m") || c.equals("M"))) {
                 currResultRowSpan = 0;
@@ -141,7 +148,36 @@ public abstract class InputHandler extends InputData {
 
                 //suspend employee
                 case "s":
-                    isInvalid = !setState(View.State.SUSPEND); // same above.
+                    if (inputs.length > 1) {
+                        int index = 0;
+                        boolean isAscending = false;
+                        
+                        try {
+                            index = Integer.parseInt(inputs[1]);
+                            
+                            if (inputs.length > 2) {
+                                int intAscending = 0;
+                                try {
+                                    intAscending = Integer.parseInt(inputs[2]);
+                                } catch (Exception e) {
+                                    System.out.println(e);
+                                }
+
+                                if (intAscending == 1) {
+                                    isAscending = true;
+                                }
+                            }
+                        
+                            function.setSortBy(index,isAscending);
+                            isInvalid = false;
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                        render();
+                    } else {
+                        isInvalid = !setState(View.State.SUSPEND);
+                    }
+                    
                     showMore = true;
                     break;
                     
@@ -211,19 +247,32 @@ public abstract class InputHandler extends InputData {
                     break;
                     
                //display employees payroll
-                case "dp":
-                    System.out.println("********************************************************************");
-                    System.out.println("*\t\t\t\t\t\t\t\t   *");
-                    System.out.println("*\t\t     Payroll for the month of December\t           *");
-                    System.out.println("*\t\t\t\t\t\t\t\t   *");
-                    System.out.println("********************************************************************");
-                    System.out.println("Employee ID\t  Employee Name\t\tNet Salary\tGross Salary");
-                    function.displayEmployeeSalary(0);
-                    
+                case "dp":         
+                    isInvalid = !setState(View.State.TOVIEWSALARIES);
                     showMore = true;
-                    isInvalid = false;
                     break;
                
+                case "cd":
+                    if (isState(View.State.VIEWEMPLOYEE)) {
+                        if (!changeDateInputData.getActive()){
+                            changeDateInputData.setActive(true);
+                            render();
+                            isInvalid = false;
+                        }
+                    }
+                    break;
+                    
+                case "f":
+                    System.out.println(inputs.length);
+                    if (inputs.length > 1) {
+                        function.setFilterName(inputs[1]);
+                    } else {
+                        function.setFilterName("");
+                    }
+                    render();
+                    isInvalid = false;
+                    break;
+                    
                //delete employee
                 case "de":
                     setState(View.State.DELETE);

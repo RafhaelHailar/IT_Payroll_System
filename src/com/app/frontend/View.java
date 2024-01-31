@@ -2,6 +2,7 @@ package com.app.frontend;
 
 import java.util.ArrayList;
 import com.app.main.*;
+import java.time.LocalDate;
 
 public class View extends InputHandler{
     // PROGRAM STATES
@@ -14,7 +15,8 @@ public class View extends InputHandler{
        CREATE,
        DELETE,
        TOVIEWEMPLOYEE,
-       VIEWEMPLOYEE
+       VIEWEMPLOYEE,
+       TOVIEWSALARIES,
     }
     
     enum UserType {
@@ -29,9 +31,13 @@ public class View extends InputHandler{
     //employee viewing
     private static int employeeViewingId = -1;
     
+    // for displaying employee payroll based on year and month
+    public static LocalDate currDate = LocalDate.now();
+    private static int targetYear = currDate.getYear();
+    private static String targetMonth = availableMonths[currDate.getMonthValue() - 1];
+    
     public View() {
         routeHistory.add(currentState);
-        
         // initial rendering
         render();
     }
@@ -92,6 +98,9 @@ public class View extends InputHandler{
                 break;
             case VIEWEMPLOYEE:
                 renderViewEmployee();
+                break;
+            case TOVIEWSALARIES:
+                renderToViewSalaries();
                 break;
         }
         
@@ -273,6 +282,8 @@ public class View extends InputHandler{
         switch (toViewEmployeeInputData.level) {
             case 1:
                 System.out.println("------EMPLOYEES ");
+                targetYear = currDate.getYear();
+                targetMonth = availableMonths[currDate.getMonthValue() - 1];
                 function.displayEmployeeBasicInfo(currResultRowSpan);
                 System.out.print("Enter employee id: ");
                 break;
@@ -286,84 +297,132 @@ public class View extends InputHandler{
     }
     
     public void renderViewEmployee() {
-        System.out.println("Viewing Employee");
-        System.out.println("Viewing " + employeeViewingId + " data");
-        Employee employeeData = function.getEmployeeData(employeeViewingId);
+        System.out.println("**Viewing Employee**");
+        System.out.println("[cd] change date, change the payslip viewing with a given date");
         
-        if (!employeeData.getIsSuccess()) {
-           System.out.println("Data can not retrieve!");
-           View.setEmployeeViewing(-1);
-           setState(State.TOVIEWEMPLOYEE);
-           return;
-        }
-        
-        String name,sex,hiredDate,positionName;
-        int age,positionId,salaryPerDay;
-        boolean isSuspended;
-        
-        name = employeeData.getName();
-        sex = employeeData.getSex();
-        hiredDate = employeeData.getHiredDate();
-        positionName = employeeData.getPositionName();
-        age = employeeData.getAge();
-        positionId = employeeData.getPositionId();
-        isSuspended = employeeData.isIsSuspended();
-        salaryPerDay = employeeData.getSalaryPerDay();
-        
-        int spacing = 50;
-        int phpSpacing = 15;
-        
-        ArrayList<Integer> lengths = new ArrayList<Integer>();
-        int maxLength = 0;
-        
-        lengths.add((":EMPLOYEE " + employeeViewingId).length() + spacing); 
-        lengths.add((name).length() + spacing);
-        lengths.add((positionName).length() + spacing);
-        lengths.add(("P"+ salaryPerDay +"/day").length() + spacing);
-        lengths.add(("May 1-30 2023").length() + spacing);
-        lengths.add(("20 day").length() + spacing);
-        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
-        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
-        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
-        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
-        lengths.add(("P"+ 2300500 +"/day").length() + spacing);
-        
-        for (Integer length: lengths) {
-            if (length > maxLength) {
-                maxLength = length;
+        if (changeDateInputData.getActive()) {
+            switch (changeDateInputData.level) {
+                case 1:
+                    System.out.println("**Change Date");
+                    System.out.print("Enter year: ");
+                    break;
+                case 2:
+                    System.out.print("Enter month: ");
+                    break;
             }
+        } else {
+            System.out.println("Viewing " + employeeViewingId + " data");
+            Employee employeeData = function.getEmployeeData(employeeViewingId,targetYear,targetMonth);
+
+            if (!employeeData.getIsSuccess()) {
+               System.out.println("Data can not retrieve!");
+               View.setEmployeeViewing(-1);
+               setState(State.TOVIEWEMPLOYEE);
+               return;
+            }
+
+            String name,sex,hiredDate,positionName;
+            int age,positionId,salaryPerDay,daysPresent,
+                taxDeduction,sssDeduction,medicareDeduction,
+                grossSalary,hoursLate,lateDeduction;
+            float netSalary;
+            boolean isSuspended;
+
+            name = employeeData.getName();
+            sex = employeeData.getSex();
+            hiredDate = employeeData.getHiredDate();
+            positionName = employeeData.getPositionName();
+            age = employeeData.getAge();
+            positionId = employeeData.getPositionId();
+            isSuspended = employeeData.isIsSuspended();
+            salaryPerDay = employeeData.getSalaryPerDay();
+            daysPresent = employeeData.getDaysPresent();
+            taxDeduction = employeeData.getTaxDeduction();
+            sssDeduction = employeeData.getSSSDeduction();
+            medicareDeduction = employeeData.getMedicareDeduction();
+            grossSalary = employeeData.getGrossSalary();
+            netSalary = employeeData.getNetSalary();
+            hoursLate = employeeData.getHoursLate();
+            lateDeduction = employeeData.getLateDeduction();
+
+            int spacing = 50;
+            int phpSpacing = 15;
+
+            ArrayList<Integer> lengths = new ArrayList<Integer>();
+            int maxLength = 0;
+
+            lengths.add((":EMPLOYEE " + employeeViewingId).length() + spacing); 
+            lengths.add((name).length() + spacing);
+            lengths.add((positionName).length() + spacing);
+            lengths.add(("P"+ salaryPerDay +"/day").length() + spacing);
+            lengths.add((targetMonth + " 1-30 " + targetYear).length() + spacing);
+            lengths.add((daysPresent + " day").length() + spacing);
+            lengths.add(("P"+ formatNumber(grossSalary)).length() + spacing);
+            lengths.add(("P" + formatNumber(taxDeduction)).length() + spacing);
+            lengths.add(("P" + formatNumber(sssDeduction)).length() + spacing);
+            lengths.add(("P" + formatNumber(medicareDeduction)).length() + spacing);
+            lengths.add(("P" + formatNumber(netSalary)).length() + spacing);
+
+            for (Integer length: lengths) {
+                if (length > maxLength) {
+                    maxLength = length;
+                }
+            }
+
+            System.out.printf("%-"+ spacing +"s%s\n"," ",":EMPLOYEE " + employeeViewingId);
+            System.out.println(" ");
+            System.out.printf("%-"+ spacing +"s%s\n","Employee Name:",name);
+            System.out.printf("%-"+ spacing +"s%s\n", "Company Position:",positionName);
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Salary Rate: ","Php:","P" + formatNumber(salaryPerDay) + "/day");
+            drawCharacterNTimes('*',maxLength);
+            System.out.printf("%-"+ spacing +"s%s\n", "Date Covered:",targetMonth + " 1-30 " + targetYear);
+            System.out.printf("%-"+ spacing +"s%s\n", "Total Number of Days Present:",daysPresent + " day");
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Gross Income: ","Php:","P" + formatNumber(grossSalary));
+            System.out.println("Deductions");
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Tax: ","Php:","P" + formatNumber(taxDeduction));
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    SSS: ","Php:","P" + formatNumber(sssDeduction));
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Medicare: ","Php:","P" + formatNumber(medicareDeduction));
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Late: ","Php:","P" + formatNumber(lateDeduction * hoursLate) + "(P" + lateDeduction + " x " + hoursLate + "hour/s)");
+            drawCharacterNTimes('*',maxLength);
+            System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Net Income: ","Php:","P" + formatNumber(netSalary));
+                    /*
+                                                      :EMPLOYEE 22313
+
+              Employee Name:                          Marco Pol. Leo
+              Salary Rate:                    Php:    P1,500/day
+              *******************************************************
+              Date Covered:                           May 1-30 2023
+              Total Number of Days Present:           20 day         
+              Gross Income:                   Php:    P2,300,500
+              Deductions:            
+                  Tax:                        Php:    P5,000
+                  SSS:                        Php:    P6,300
+                  Medicare:                   Php:    P300
+              *******************************************************
+              Net Income:                     Php:    P3,000,000 */
         }
+    }
+    
         
-        System.out.printf("%-"+ spacing +"s%s\n"," ",":EMPLOYEE " + employeeViewingId);
-        System.out.println(" ");
-        System.out.printf("%-"+ spacing +"s%s\n","Employee Name:",name);
-        System.out.printf("%-"+ spacing +"s%s\n", "Company Position:",positionName);
-        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Salary Rate: ","Php:","P" + formatNumber(salaryPerDay) + "/day");
-        drawCharacterNTimes('*',maxLength);
-        System.out.printf("%-"+ spacing +"s%s\n", "Date Covered:","May 1-30 2023");
-        System.out.printf("%-"+ spacing +"s%s\n", "Total Number of Days Present:", "20 day");
-        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Gross Income: ","Php:","P" + formatNumber(2300500));
-        System.out.println("Deductions");
-        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Tax: ","Php:","P" + formatNumber(2300500));
-        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    SSS: ","Php:","P" + formatNumber(2300500));
-        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Medicare: ","Php:","P" + formatNumber(2300500));
-        drawCharacterNTimes('*',maxLength);
-        System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Net Income: ","Php:","P" + formatNumber(2300500));
-        /*
-                                          :EMPLOYEE 22313
-  
-  Employee Name:                          Marco Pol. Leo
-  Salary Rate:                    Php:    P1,500/day
-  *******************************************************
-  Date Covered:                           May 1-30 2023
-  Total Number of Days Present:           20 day         
-  Gross Income:                   Php:    P2,300,500
-  Deductions:            
-      Tax:                        Php:    P5,000
-      SSS:                        Php:    P6,300
-      Medicare:                   Php:    P300
-  *******************************************************
-  Net Income:                     Php:    P3,000,000 */
+    public void renderToViewSalaries() {
+        System.out.println("CURRENT LEVEL: " + salaryInputData.level);
+        switch (salaryInputData.level) {
+            case 1:
+                System.out.println("**DISPLAY EMPLOYEES SALARY**");
+                System.out.print("Enter year: ");
+                break;
+            case 2:
+                System.out.print("Enter month: ");
+                break;
+            case 3:
+                salaryInputData.reDisplaySalaries();
+                System.out.print("Enter employee id: ");
+                break;
+            case 4:
+                salaryInputData.clear();
+                setState(State.VIEWEMPLOYEE);
+                break;
+        }
     }
     
     public void displayLogout() {
@@ -405,6 +464,9 @@ public class View extends InputHandler{
             case ATTENDANCE:
                 attendanceInputData.clear();
                 break;
+            case TOVIEWSALARIES:
+                salaryInputData.clear();
+                break;
         }         
     }
     
@@ -441,34 +503,46 @@ public class View extends InputHandler{
     }
     
     //number formatter
-    private String formatNumber(int number) {
+    private String formatNumber(float number) {
         String result = "";
         
-        String strNumber = String.valueOf(number);
+        String[] strNumber = String.valueOf(number).split("\\.");
+        String strWhole = strNumber[0];
+        String strDecimals = "";
         
-        for (int i = strNumber.length() - 1;i >= 0;i--) {
+        if (strNumber.length > 1){
+            strDecimals = strNumber[1];
+        }
+        
+        for (int i = strWhole.length() - 1;i >= 0;i--) {
             boolean addComma = false;
-            if ((strNumber.length() - i) % 3 == 0 && i > 0) {
+            if ((strWhole.length() - i) % 3 == 0 && i > 0) {
                 try {
                     // since ascii is 1-255, if the charAt returns below 0 then the character does not found.
-                    if (strNumber.charAt(i - 1) > 0) {
+                    if (strWhole.charAt(i - 1) > 0) {
                         addComma = true;
                     }
                 } catch(Exception e) {}
             }
             
-            result = strNumber.charAt(i) + result;
+            result = strWhole.charAt(i) + result;
             if (addComma) {
                 result = "," + result;
             }
         }
-        
+        result += "." + strDecimals;
         return result;
     }
     
     //set the employee we are going to view
     public static void setEmployeeViewing(int employeeId) {
         employeeViewingId = employeeId;
+    }
+    
+    //set the date of the payroll we are going to look from the employee
+    public static void setDateViewing(int year,String month) {
+        targetYear = year;
+        targetMonth = month;
     }
     
     //clear routes history

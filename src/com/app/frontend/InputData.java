@@ -7,6 +7,9 @@ import com.app.main.Employee;
 
 public abstract class InputData {
     int level = 1;
+     
+    public static final String[] availableMonths = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+    
     
     public void clear() {
         this.level = 1;
@@ -325,9 +328,7 @@ public abstract class InputData {
                     this.level++;
                     break;
                 case 3:
-                    String[] availableMonths = {"January","February","March","April","May","June","July","August","September","October","November","December"};
-                    
-
+                   
                     try {
                         int index  = Integer.parseInt(data);
                         month = availableMonths[index - 1];
@@ -394,6 +395,134 @@ public abstract class InputData {
                 System.out.println("Setting attendance failed!...");
             }
             
+        }
+    }
+    
+    public static class SalaryInputData extends InputData {
+        private int employeeId;
+        private int year;
+        private String month;
+        
+        public SalaryInputData(Function function) {
+            this.function = function;
+        }
+        
+        public void addData(String data) {
+            switch (this.level) {
+                case 1:
+                    try {
+                        year = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 2:
+                    try {
+                        int index  = Integer.parseInt(data);
+                        month = availableMonths[index - 1];
+                    } catch (NumberFormatException e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    } catch (IndexOutOfBoundsException e) {
+                        System.out.println("Please only enter a number between 1 - 12");
+                        break;
+                    } catch (Exception e) {
+                        System.out.println(e);
+                        break;
+                    }
+                       
+                    displaySalaries();
+                    this.level++;
+                    break;
+                case 3:
+                    try {
+                        employeeId = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    
+                    displayEmployeeDetails();
+                    this.level++;
+                    break;
+            }
+        }
+        
+        public void displaySalaries() {
+            System.out.println("********************************************************************");
+            System.out.println("*\t\t\t\t\t\t\t\t   *");
+            System.out.println("*\t\t     Payroll for "+ month + " " + year + "\t\t            *");
+            System.out.println("*\t\t\t\t\t\t\t\t   *");
+            System.out.println("********************************************************************");
+            System.out.println("Employee ID\t  Employee Name\t\tNet Salary\tGross Salary");
+            function.displayEmployeeSalary(0, year, month);
+        }
+        
+        public void reDisplaySalaries() {
+            displaySalaries();
+        }
+        
+        public void displayEmployeeDetails() {
+            View.setEmployeeViewing(employeeId);
+            View.setDateViewing(year, month);
+        }
+    }
+    
+    public static class ChangeDateInputData extends InputData {
+        private int year;
+        private String month;
+        private boolean active = false;
+        
+        public ChangeDateInputData(Function function) {
+            this.function = function;
+        }
+        
+        public void addData(String data) {
+            if (!active) return;
+            
+            switch (this.level) {
+                case 1:
+                    try {
+                        year = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 2:
+                    try {
+                        int index  = Integer.parseInt(data);
+                        month = availableMonths[index - 1];
+                    } catch (NumberFormatException e ) {
+                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    } catch (IndexOutOfBoundsException e) {
+                        System.out.println("Please only enter a number between 1 - 12");
+                        break;
+                    } catch (Exception e) {
+                        System.out.println(e);
+                        break;
+                    }
+                    changeDate();
+                    break;
+            }
+        }
+        
+        public void setActive(boolean active) {
+            this.active = active;
+        }
+       
+        public boolean getActive() {
+            return this.active;
+        }
+        
+        public void changeDate() {
+            this.active = false;
+            this.clear();
+            View.setDateViewing(year, month);
         }
     }
 }
