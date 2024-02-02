@@ -17,6 +17,7 @@ public class View extends InputHandler{
        TOVIEWEMPLOYEE,
        VIEWEMPLOYEE,
        TOVIEWSALARIES,
+       UPDATEEMPLOYEE
     }
     
     enum UserType {
@@ -70,7 +71,7 @@ public class View extends InputHandler{
     }
    
     public void render() {
-        System.out.println(routeHistory + " current state is: " + currentState);
+     //   System.out.println(routeHistory + " current state is: " + currentState);
         switch (currentState) {
             case LOGIN:
                 renderLogin();
@@ -102,6 +103,9 @@ public class View extends InputHandler{
             case TOVIEWSALARIES:
                 renderToViewSalaries();
                 break;
+            case UPDATEEMPLOYEE:
+                renderUpdateEmployee();
+                break;
         }
         
     }
@@ -110,30 +114,31 @@ public class View extends InputHandler{
         int userID = Main.getUserID();
         
         switch (loginInputData.level) {
-            case 1: 
-                System.out.println("**LOGIN**");
-                System.out.print("Enter your user id: ");
+            case 1:
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::LOGIN:: **************");
+                System.out.print("* Enter your user id: ");
                 break;
             case 2:
-                System.out.print("Enter your user password: ");
+                System.out.print("* Enter your user password: ");
                 break;
             case 3:
                 loginInputData.clear();
                 
-                if (userID > 0) {
-                    System.out.println("Welcome " + userID);
-                    
+                if (userID > 0) {                  
                     if (userID == Main.getAdminId()) {
                         setUserType(UserType.ADMIN);
                     } else {
                         setUserType(UserType.EMPLOYEE);
                     }
                     
-                    System.out.println("Logged in!");
+                    System.out.println("* Logged in!");
                     
                     setState(State.MAIN);
                 }  else {
-                    System.out.println("Username or Password is incorrect!");
+                    System.out.println("*--*:: Username or Password is incorrect!");
                     render();
                 }
                 break;
@@ -142,50 +147,82 @@ public class View extends InputHandler{
    
     private void renderMain() {
         int userID = Main.getUserID();
-        System.out.println("**MAIN**");
+        System.out.println(" "); // for spacing
+        System.out.println(" "); // for spacing
+        System.out.println(" "); // for spacing
+        System.out.println("************** ::MAIN:: **************");
         System.out.println("USER: " + (userID == 1 ? "admin" : userID));
-        System.out.println("* Type (l) to logout!");
+        System.out.println("- enter [l] to logout.");
+        System.out.println("- enter [b] to go back to previous state / part of the program.");
         if (isUserAdmin()) {
-            System.out.println("ENTER YOUR CHOICE: ");
-            System.out.println("[d] DISPLAY EMPLOYEES BASIC INFO");
-            System.out.println("[a] SET EMPLOYEES ATTENDANCE");
-            System.out.println("[p <position id>] DISPLAY EMPLOYEES BASIC INFO FILTERED BY GIVEN POSITION ID");
-            System.out.println("[s] SUSPEND EMPLOYEE");
-            System.out.println("[de] DELETE EMPLOYEE");
-            System.out.println("[c] CREATE EMPLOYEE");
-            System.out.println("[dp] DISPLAY EMPLOYEES PAYROLL");
-            System.out.print("TYPE NUMBER : ");
+            System.out.println("* ENTER YOUR CHOICE: ");
+            System.out.println("\t--- [d] DISPLAY EMPLOYEES BASIC INFO");
+            System.out.println("\t--- [a] SET EMPLOYEES ATTENDANCE");
+            System.out.println("\t--- [p <position id>] DISPLAY EMPLOYEES BASIC INFO FILTERED BY GIVEN POSITION ID");
+            System.out.print("\t\t");
+            function.displayPositionsName();
+            System.out.println("\t--- [s] SUSPEND EMPLOYEE");
+            System.out.println("\t--- [de] DELETE EMPLOYEE");
+            System.out.println("\t--- [c] CREATE EMPLOYEE");
+            System.out.println("\t--- [up] UPDATE EMPLOYEE INFO");
+            System.out.println("\t--- [dp] DISPLAY EMPLOYEES PAYROLLS");
+            System.out.print("* TYPE YOUR CHOICE : ");
         } else {
-            System.out.println("EMPLOYEE DETAILS");
+            System.out.println(" "); // for spacing
+            System.out.println(" "); // for spacing
+            System.out.println(" "); // for spacing
+            System.out.println("************** ::EMPLOYEE DETAILS:: **************");
+            int employeeId = function.getEmployeeIdByUserId(userID);
+            Employee employee = function.getEmployeeBasicInfo(employeeId);
             
+            String name = employee.getName();
+            int age = employee.getAge();
+            String sex = employee.getSex();
+            String position = employee.getPositionName();
+            String hiredDate = employee.getHiredDate();
+            
+            
+            System.out.println("**NAME: " + name);
+            System.out.println("**AGE: " + age);
+            System.out.println("**SEX: " + sex);
+            System.out.println("**POSITION: " + position);
+            System.out.println("**HIRED DATE: " + hiredDate);
+            
+            View.setEmployeeViewing(employeeId);
+            setState(State.VIEWEMPLOYEE);
         }
     }
     
     private void renderAttendance() {
         switch (attendanceInputData.level) {
             case 1:
-                System.out.println("**SET EMPLOYEE ATTENDANCE**");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::SET EMPLOYEE ATTENDANCE:: **************");
                 function.displayEmployeeBasicInfo(currResultRowSpan);
                
-                System.out.print("Enter employee id: ");
+                displayingMoreText();
+                
+                System.out.print("* Enter employee id: ");
                 break;
             case 2:
-                System.out.print("Enter year: ");
+                System.out.print("* Enter year: ");
                 break;
             case 3:
-                System.out.print("Enter month id ([1] January - [12] December): ");
+                System.out.print("* Enter month id ([1] January - [12] December): ");
                 break;
             case 4:
-                System.out.print("Enter total days present: ");
+                System.out.print("* Enter total days present: ");
                 break;
             case 5:
-                System.out.print("Enter total days absent: ");
+                System.out.print("* Enter total days absent: ");
                 break;
             case 6:
-                System.out.print("Enter total days late: ");
+                System.out.print("* Enter total days late: ");
                 break;
             case 7:
-                System.out.print("Enter total hours late: ");
+                System.out.print("* Enter total hours late: ");
                 break;
             case 8:
                 attendanceInputData.clear();
@@ -199,17 +236,20 @@ public class View extends InputHandler{
         
         switch (suspendInputData.level) {
             case 1:
-                System.out.println("**SUSPEND EMPLOYEE**");
-                System.out.println("Type [u]Unsuspend, to unsuspend suspended employees");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::SUSPEND EMPLOYEE:: **************");
+                System.out.println("- Type [u]Unsuspend, to unsuspend suspended employees");
                 function.displayAllUnsuspendEmployeeInfo(currResultRowSpan);
                 displayingMoreText();
-                System.out.print("Enter employee id: ");
+                System.out.print("* Enter employee id: ");
                 break;
             case 2:
-                System.out.print("Confirm Suspend [(Y) YES, input other than (Y) is considered false]: ");
+                System.out.print("* Confirm Suspend [(Y) YES, input other than (Y) is considered false]: ");
                 break;
             case 3:
-                System.out.println("Suspension Success!");
+                System.out.println("* Suspension Success!");
                 suspendInputData.clear();
                 render();
                 break;
@@ -220,16 +260,18 @@ public class View extends InputHandler{
         
         switch (unSuspendInputData.level) {
             case 1:
-                System.out.println("**UNSUSPEND EMPLOYEE**");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::UNSUSPEND EMPLOYEE:: **************");
                 function.displaySuspendedEmployee(currResultRowSpan);
                 displayingMoreText();
-                System.out.print("Enter suspended employee id: ");
+                System.out.print("* Enter suspended employee id: ");
                 break;
             case 2:
-                System.out.print("Confirm Unsuspend [(Y) YES, input other than (Y) is considered false]: ");
+                System.out.print("* Confirm Unsuspend [(Y) YES, input other than (Y) is considered false]: ");
                 break;
             case 3:
-                System.out.println("Unsuspension Success!");
                 unSuspendInputData.clear();
                 render();
                 break;
@@ -240,22 +282,26 @@ public class View extends InputHandler{
         
         switch (createInputData.level) {
             case 1:
-                System.out.println("**CREATE EMPLOYEE**");
-                System.out.print("Enter employee name: ");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::CREATE EMPLOYEE:: **************");
+                System.out.print("* Enter employee name: ");
                 break;
             case 2:
-                System.out.print("Enter employee password: ");
+                System.out.print("* Enter employee password: ");
                 break;
             case 3:
-                System.out.print("Enter employee sex ('M' | 'F'): ");
+                System.out.print("* Enter employee sex ('M' | 'F'): ");
                 break;
             case 4:
-                System.out.print("Enter employee age: ");
+                System.out.print("* Enter employee age: ");
                 break;
             case 5:
-                System.out.println("Positions id and name: ");
+                System.out.println("- Positions ID's and NAME: ");
+                System.out.print("\t");
                 createInputData.positionIdLimit = function.displayPositionsName();
-                System.out.print("Enter employee position id: ");
+                System.out.print("* Enter employee position id: ");
                 break;        
         }
     }
@@ -264,13 +310,16 @@ public class View extends InputHandler{
         
         switch (deleteInputData.level) {
             case 1:
-                System.out.println("**DELETE EMPLOYEE**");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::DELETE EMPLOYEE:: **************");
                 function.displayEmployeeBasicInfo(currResultRowSpan);
                 displayingMoreText();
-                System.out.print("Enter employee id: ");
+                System.out.print("* Enter employee id: ");
                 break;
             case 2:
-                System.out.print("Confirm Deletion [(Y) YES, input other than (Y) is considered false]: ");
+                System.out.print("* Confirm Deletion [(Y) YES, input other than (Y) is considered false]: ");
                 break;
             case 3:
                 deleteInputData.clear();
@@ -279,45 +328,45 @@ public class View extends InputHandler{
     }
     
     public void renderToViewEmployee() {
-        switch (toViewEmployeeInputData.level) {
-            case 1:
-                System.out.println("------EMPLOYEES ");
-                targetYear = currDate.getYear();
-                targetMonth = availableMonths[currDate.getMonthValue() - 1];
-                function.displayEmployeeBasicInfo(currResultRowSpan);
-                System.out.print("Enter employee id: ");
-                break;
-            case 2:
-                toViewEmployeeInputData.clear();
-                if (employeeViewingId > -1) { 
-                    setState(State.VIEWEMPLOYEE);
-                }
-                break;
-        }
+        System.out.println(" "); // for spacing
+        System.out.println(" "); // for spacing
+        System.out.println(" "); // for spacing
+        System.out.println("************** ::EMPLOYEES BASIC INFO:: **************");
+        targetYear = currDate.getYear();
+        targetMonth = availableMonths[currDate.getMonthValue() - 1];
+        function.displayEmployeeBasicInfo(currResultRowSpan);
+        displayingMoreText();
     }
     
     public void renderViewEmployee() {
-        System.out.println("**Viewing Employee**");
-        System.out.println("[cd] change date, change the payslip viewing with a given date");
+        System.out.println(" "); // for spacing
+        System.out.println(" "); // for spacing
+        System.out.println(" "); // for spacing
+        System.out.println("************** ::VIEWING EMPLOYEE:: **************");
+        System.out.println("- [cd] change date, change the payslip viewing with a given date");
         
         if (changeDateInputData.getActive()) {
             switch (changeDateInputData.level) {
                 case 1:
-                    System.out.println("**Change Date");
+                    System.out.println("** Change Date");
                     System.out.print("Enter year: ");
                     break;
                 case 2:
-                    System.out.print("Enter month: ");
+                    System.out.print("* Enter month id ([1] January - [12] December): ");
                     break;
             }
         } else {
-            System.out.println("Viewing " + employeeViewingId + " data");
+            System.out.println("-- Viewing " + employeeViewingId + " data");
             Employee employeeData = function.getEmployeeData(employeeViewingId,targetYear,targetMonth);
 
             if (!employeeData.getIsSuccess()) {
-               System.out.println("Data can not retrieve!");
-               View.setEmployeeViewing(-1);
-               setState(State.TOVIEWEMPLOYEE);
+               System.out.println("* Data can not retrieve!");
+               if (loggedAs == UserType.ADMIN) {
+                    View.setEmployeeViewing(-1);
+                    setState(State.TOVIEWEMPLOYEE);
+               } else {
+                   System.out.println("* Your payroll for " + targetMonth + " " + targetYear + " is not yet processed.");
+               }
                return;
             }
 
@@ -385,38 +434,33 @@ public class View extends InputHandler{
             System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","    Late: ","Php:","P" + formatNumber(lateDeduction * hoursLate) + "(P" + lateDeduction + " x " + hoursLate + "hour/s)");
             drawCharacterNTimes('*',maxLength);
             System.out.printf("%-"+ (spacing - phpSpacing) +"s%-"+ phpSpacing +"s%s\n","Net Income: ","Php:","P" + formatNumber(netSalary));
-                    /*
-                                                      :EMPLOYEE 22313
-
-              Employee Name:                          Marco Pol. Leo
-              Salary Rate:                    Php:    P1,500/day
-              *******************************************************
-              Date Covered:                           May 1-30 2023
-              Total Number of Days Present:           20 day         
-              Gross Income:                   Php:    P2,300,500
-              Deductions:            
-                  Tax:                        Php:    P5,000
-                  SSS:                        Php:    P6,300
-                  Medicare:                   Php:    P300
-              *******************************************************
-              Net Income:                     Php:    P3,000,000 */
+            
+            System.out.println("\n- TYPE [b] back, to go back!");
         }
     }
     
         
     public void renderToViewSalaries() {
-        System.out.println("CURRENT LEVEL: " + salaryInputData.level);
         switch (salaryInputData.level) {
             case 1:
-                System.out.println("**DISPLAY EMPLOYEES SALARY**");
-                System.out.print("Enter year: ");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::EMPLOYEES SALARIES:: **************");
+                System.out.print("* Enter year: ");
                 break;
             case 2:
-                System.out.print("Enter month: ");
+                System.out.print("* Enter month id ([1] January - [12] December): ");
                 break;
             case 3:
-                salaryInputData.reDisplaySalaries();
-                System.out.print("Enter employee id: ");
+                boolean hasResult = salaryInputData.displaySalaries();
+                if (!hasResult) {
+                    salaryInputData.prevLevel();
+                    render();
+                } else {
+                    displayingMoreText();
+                    System.out.print("* Enter employee id: ");
+                }
                 break;
             case 4:
                 salaryInputData.clear();
@@ -425,9 +469,84 @@ public class View extends InputHandler{
         }
     }
     
+    public void renderUpdateEmployee() {
+        Employee employee = updateEmployeeInputData.getEmployeeBasicInfo();
+        String employeeName = employee.getName();
+        String employeeSex = employee.getSex();
+        int employeeAge = employee.getAge();
+        int positionId = employee.getPositionId();
+        String positionName = employee.getPositionName();
+                    
+        switch (updateEmployeeInputData.level) {
+            case 1:
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::UPDATE EMPLOYEE:: **************");
+                function.displayEmployeeBasicInfo(currResultRowSpan);
+                System.out.print("* Enter employee id: ");
+                break;
+            case 2:
+                
+                if (employee.getIsSuccess()) {
+                    System.out.println(" "); // for spacing
+                    System.out.println(" "); // for spacing
+                    System.out.println(" "); // for spacing
+                    System.out.println("* ENTER YOUR CHOICE: ");
+                    System.out.println("\t---[un] UPDATE NAME");
+                    System.out.println("\t---[us] UPDATE SEX");
+                    System.out.println("\t---[ua] UPDATE AGE");
+                    System.out.println("\t---[up] UPDATE POSITION ID");
+                    System.out.println("** NAME: " + employeeName);
+                    System.out.println("** SEX: " + employeeSex);
+                    System.out.println("** AGE: " + employeeAge);
+                    System.out.println("** POSITION: " + "[" + positionId + "]" + positionName);
+                    System.out.print("* Enter what to change: ");
+                } else {
+                    updateEmployeeInputData.displayEmployeeNotFound();
+                    render();
+                }
+                break;
+            case 3:
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::UPDATE EMPLOYEE NAME:: **************");
+                System.out.print("* Enter new employee name: ");
+                break;
+            case 4:
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::UPDATE EMPLOYEE SEX:: **************");
+                System.out.print("* Enter new employee sex: ");
+                break;
+            case 5:
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::UPDATE EMPLOYEE AGE:: **************");
+                System.out.print("* Enter new employee age: ");
+                break;
+            case 6:
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+                System.out.println("************** ::UPDATE EMPLOYEE POSITION ID:: **************");
+                updateEmployeeInputData.setPositionIdLimit(function.displayPositionsName());
+                System.out.println("POSITION: " + "[" + positionId + "]" + positionName);
+                System.out.print("* Enter new employee position id: ");
+                break;
+            case 8:
+                System.out.print("* Confirm Update [(Y) YES, input other than (Y) is considered false]: ");
+                break;
+            case 9:
+                System.out.println("* Update Success!");
+                updateEmployeeInputData.clear();
+                render();
+                break;
+        }
+    }
+    
     public void displayLogout() {
         clearHistory();
-        System.out.println("Logged out!");
+        System.out.println("* Logged out!");
         setState(View.State.LOGIN);
     }
     
@@ -470,9 +589,9 @@ public class View extends InputHandler{
         }         
     }
     
-    private void displayingMoreText() {
+    public static void displayingMoreText() {
         if (function.dataDisplaying) {
-            System.out.println("\nType [m]More to show more results...");
+            System.out.println("\n--Type [m]More to show more results...");
         }
     }
     
@@ -503,7 +622,7 @@ public class View extends InputHandler{
     }
     
     //number formatter
-    private String formatNumber(float number) {
+    public static String formatNumber(float number) {
         String result = "";
         
         String[] strNumber = String.valueOf(number).split("\\.");

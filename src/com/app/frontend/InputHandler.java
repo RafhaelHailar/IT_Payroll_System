@@ -20,9 +20,9 @@ public abstract class InputHandler extends InputData {
     public static CreateInputData createInputData = new CreateInputData(function);
     public static DeleteInputData deleteInputData = new DeleteInputData(function);
     public static AttendanceInputData attendanceInputData = new AttendanceInputData(function);
-    public static ToViewEmployeeInputData toViewEmployeeInputData = new ToViewEmployeeInputData(function);
     public static SalaryInputData salaryInputData = new SalaryInputData(function);
     public static ChangeDateInputData changeDateInputData = new ChangeDateInputData(function);
+    public static UpdateEmployeeInputData updateEmployeeInputData = new UpdateEmployeeInputData(function);
     
     // for pagination
     public static int currResultRowSpan = 0;
@@ -62,7 +62,7 @@ public abstract class InputHandler extends InputData {
     
     private void checkValue() {
         String value = input.substring(1);
-        System.out.println("The value you enter is: " + value);
+        System.out.println("- The value you enter is: " + value);
         
         switch (getCurrentState()) {
             case LOGIN:
@@ -80,9 +80,6 @@ public abstract class InputHandler extends InputData {
             case DELETE:
                 deleteInputData.addData(value);
                 break;
-            case TOVIEWEMPLOYEE:
-                toViewEmployeeInputData.addData(value);
-                break;
             case ATTENDANCE:
                 attendanceInputData.addData(value);
                 break;
@@ -91,6 +88,9 @@ public abstract class InputHandler extends InputData {
                 break;
             case VIEWEMPLOYEE:
                 changeDateInputData.addData(value);
+                break;
+            case UPDATEEMPLOYEE:
+                updateEmployeeInputData.addData(value);
                 break;
         }
         
@@ -110,13 +110,63 @@ public abstract class InputHandler extends InputData {
             //logging out
             case "l":
                 if (!isState(View.State.LOGIN)) {
-                    System.out.println("Logging you out...");
+                    System.out.println("* Logging you out...");
                     Main.setUserID(-1);
                     displayLogout();
                     isInvalid = false;
                 } 
                 break;
-            
+                
+             // undo inputs
+            case "uu":
+                switch (getCurrentState()) {
+                    case LOGIN:
+                        loginInputData.prevLevel();
+                        break;
+                    case SUSPEND:
+                        suspendInputData.prevLevel();
+                        break;
+                    case UNSUSPEND:
+                        unSuspendInputData.prevLevel();
+                        break;
+                    case CREATE:
+                        createInputData.prevLevel();
+                        break;
+                    case DELETE:
+                        deleteInputData.prevLevel();
+                        break;
+                    case ATTENDANCE:
+                        attendanceInputData.prevLevel();
+                        break;
+                    case TOVIEWSALARIES:
+                        salaryInputData.prevLevel();
+                        break;
+                    case VIEWEMPLOYEE:
+                        changeDateInputData.prevLevel();
+                        break;
+                    case UPDATEEMPLOYEE:
+                        if (updateEmployeeInputData.level == 2) {
+                            updateEmployeeInputData.prevLevel();
+                        } else {
+                            updateEmployeeInputData.setLevel(2);
+                        }
+                        break;
+                }
+                render();
+                isInvalid = false;
+                break;
+                
+            // change payslip currently viewing by a given date.
+            case "cd":
+                if (isState(View.State.VIEWEMPLOYEE)) {
+                    if (!changeDateInputData.getActive()){
+                        changeDateInputData.setActive(true);
+                        render();
+                        isInvalid = false;
+                    }
+                }
+                break;
+                
             //backing
             case "b":
                 // if returning to previous state failed then the command is invalid
@@ -188,23 +238,30 @@ public abstract class InputHandler extends InputData {
                         showMore = true;
                     }
                     break;
+           
                     
                 //display by position
                 case "p":
                     try {
+                        System.out.println(" "); // for spacing
+                        System.out.println(" "); // for spacing
+                        System.out.println(" "); // for spacing
+                        System.out.println("************** ::DISPLAY EMPLOYEES BY POSITION:: **************");
                         int position_id = Integer.parseInt(String.valueOf(input.charAt(2)));
                         function.displayPositionsName();
+                        System.out.println(""); // for spacing
                         function.displayEmployeeByPosition(position_id,currResultRowSpan);
+                        View.displayingMoreText();
+                        showMore = true;
                         isInvalid = false;
                     } catch (NumberFormatException e) {
-                        System.out.println("Input a valid number");
+                        System.out.println("*--*:: Input a valid number");
                         isInvalid = true;
                     } catch (Exception e) {
                         isInvalid = true;
                         System.out.println(e);
-                        System.out.println("Please enter a valid format: 'p [position id]'");
+                        System.out.println("*--*:: Please enter a valid format: 'p [position id]'");
                     }
-                    System.out.print("TYPE NUMBER: ");
                     break;
                 
                 // more, show more results from the data returned
@@ -251,17 +308,8 @@ public abstract class InputHandler extends InputData {
                     isInvalid = !setState(View.State.TOVIEWSALARIES);
                     showMore = true;
                     break;
-               
-                case "cd":
-                    if (isState(View.State.VIEWEMPLOYEE)) {
-                        if (!changeDateInputData.getActive()){
-                            changeDateInputData.setActive(true);
-                            render();
-                            isInvalid = false;
-                        }
-                    }
-                    break;
                     
+                // filter data results name
                 case "f":
                     System.out.println(inputs.length);
                     if (inputs.length > 1) {
@@ -273,6 +321,17 @@ public abstract class InputHandler extends InputData {
                     isInvalid = false;
                     break;
                     
+                //update employee
+                case "up":
+                    isInvalid = !setState(View.State.UPDATEEMPLOYEE);
+                    
+                    if (updateEmployeeInputData.level == 2) {
+                        updateEmployeeInputData.setLevel(6);
+                        isInvalid = false;
+                        render();
+                    }
+                    break;
+                    
                //delete employee
                 case "de":
                     setState(View.State.DELETE);
@@ -280,6 +339,21 @@ public abstract class InputHandler extends InputData {
                     isInvalid = false;
                     break;
             } 
+        }
+        
+        // choosing what to update
+        if (isState(View.State.UPDATEEMPLOYEE) && updateEmployeeInputData.level > 1) {
+            switch (c) {
+                case "un":
+                    updateEmployeeInputData.setLevel(3);
+                    break;
+                case "us":
+                    updateEmployeeInputData.setLevel(4);
+                    break;
+                case "ua":
+                    updateEmployeeInputData.setLevel(5);
+                    break;
+            }
         }
         
         // set to true if we want to continue displaying data's, that are limit.
@@ -290,7 +364,7 @@ public abstract class InputHandler extends InputData {
         } 
             
         if (isInvalid) {
-            System.out.println("Invalid command: '" + c + "'");
+            System.out.println("*--*:: Invalid command: '" + c + "'");
             render();
         }
     }

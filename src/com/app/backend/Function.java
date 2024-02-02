@@ -122,6 +122,62 @@ public class Function extends DBConnection {
      
      
      // read api's
+    public Employee getEmployeeBasicInfo(int employeeId) {
+        String query = "SELECT * FROM employees INNER JOIN positions ON employees.position_id = positions.position_id "
+                + "WHERE employee_id = " + employeeId;
+        Employee employee = new Employee();
+        
+        try {
+            connect();
+            state = con.createStatement();
+            result = state.executeQuery(query);
+            while (result.next()) {
+                String name = result.getString("employee_name");
+                String sex = result.getString("employee_sex");
+                int age = result.getInt("employee_age");
+                int positionId = result.getInt("position_id");
+                String positionName = result.getString("position_name");
+                String hiredDate = result.getString("employee_hired_date");
+                
+                employee.setName(name);
+                employee.setSex(sex);
+                employee.setAge(age);
+                employee.setPositionId(positionId);
+                employee.setPositionName(positionName);
+                employee.setHiredDate(hiredDate);
+                employee.setIsSuccess(true);
+            }
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        
+        return employee;
+    }
+    
+    // get employee id, by user id
+    public int getEmployeeIdByUserId(int userId) {
+        String query = "SELECT employee_id FROM USERS WHERE user_id = " + userId;
+        int employeeId = -1;
+        
+        try {
+            connect();
+            
+            state = con.createStatement();
+            result = state.executeQuery(query);
+            
+            while (result.next()) {
+                int id = result.getInt("employee_id");
+                employeeId = id;
+            }
+            
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        
+        return employeeId;
+    }
         
     // get specific employee data
     public Employee getEmployeeData(int employeeId,int year,String month) {
@@ -238,7 +294,8 @@ public class Function extends DBConnection {
      /**
       * Displays the salary information for employees for the specified month.
      */
-     public void displayEmployeeSalary(int rowSpan,int year,String month) {
+     public boolean displayEmployeeSalary(int rowSpan,int year,String month) {
+        boolean hasResult = false;
         String query = "SELECT attendances.*, positions.position_pay_per_day, employees.employee_name "
                 + "FROM attendances "
                 + "INNER JOIN employees ON attendances.employee_id = employees.employee_id "
@@ -256,7 +313,9 @@ public class Function extends DBConnection {
             connect();
             state = con.createStatement();
             result = state.executeQuery(query);
-
+            
+            System.out.printf("%-20s | %-20s | %-20s | %-20s\n","Employee ID","Employee Name","Net Salary","Gross Salary");
+            
             while (result.next()) {
                 int noOfPresent = result.getInt("no_of_present");
                 int noOfAbsent = result.getInt("no_of_absent");
@@ -268,15 +327,23 @@ public class Function extends DBConnection {
                 calculateSalaries(noOfPresent, payPerDay);
                 netSalary = getNetSalary();
 
-                System.out.printf("%-20d%-20s%-15d%-15.2f%s\n", employeeId, employeeName, grossSalary, netSalary, noOfPresent > 0 ? "" : " JUST HIRED!");
-
+                System.out.printf("%-20d | %-20s | %-20s | %-20s",employeeId,employeeName, "P " + View.formatNumber(grossSalary), "P " + View.formatNumber(netSalary));
+                System.out.println(noOfPresent > 0 ? "" : "--JUST HIRED!");
+                
+                hasResult = true;
             }
+            
+             System.out.println(" "); // for spacing
+             
+             con.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
         
         funcId = 5;
         dataDisplaying = true;
+        
+        return hasResult;
     }
      
      private void calculateSalaries(int noOfPresent, int payPerDay) {
@@ -321,18 +388,18 @@ public class Function extends DBConnection {
             state = con.createStatement();
             result = state.executeQuery(query);
 
-            System.out.printf("%-15s%-25s%-10s%-5s%-20s\n",
-                    "EMPLOYEE ID", "Employee Name", "Gender", "Age", "Position Name");
+            System.out.printf("%-5s | %-20s  | %s | %-4s | %-20s | %-15s | %s\n","ID","NAME","SEX","AGE","POSITION","HIRED DATE", "STATUS");
 
             while (result.next()) {
-                int employeeId = result.getInt("employee_id");
-                String employeeName = result.getString("employee_name");
-                String gender = result.getString("employee_sex");
-                int employeeAge = result.getInt("employee_age");
-                String positionName = result.getString("position_name");
+                int id = result.getInt("employee_id");
+                String name = result.getString("employee_name");
+                String sex = result.getString("employee_sex");
+                int age = result.getInt("employee_age");
+                String position = result.getString("position_name");
+                String hiredDate = result.getString("employee_hired_date");
+                boolean isSuspended = result.getBoolean("employee_is_suspended");
 
-                System.out.printf("[%d]\t\t%-25s%-10s%-5d%-20s\n",
-                        employeeId, employeeName, gender, employeeAge, positionName);
+                System.out.printf("%-4s | %-20s  | %-3s | %-4d | %-20s | %-15s | %s\n","[" + id + "]",name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
             }
         } catch (Exception e) {
             System.out.println("Connection Error: " + e.getMessage());
@@ -351,12 +418,13 @@ public class Function extends DBConnection {
              
              state = con.createStatement();
              result = state.executeQuery(query);
-             result.next();
              
-             String userPassword = result.getString("user_password");
+             while (result.next()) {
+                String userPassword = result.getString("user_password");
              
-             if (userPassword.equals(password)) {
-                 isLogged = true;
+                if (userPassword.equals(password)) {
+                    isLogged = true;
+                }
              }
              
              con.close();
@@ -381,8 +449,9 @@ public class Function extends DBConnection {
            connect();
            state = con.createStatement();
            result = state.executeQuery(query);
-           System.out.println("********************");
           
+           System.out.printf("%-5s | %-20s  | %s | %-4s | %-20s | %-15s | %s\n","ID","NAME","SEX","AGE","POSITION","HIRED DATE", "STATUS");
+           
            while(result.next()){
                int id = result.getInt("employee_id");
                String name = result.getString("employee_name");
@@ -392,7 +461,7 @@ public class Function extends DBConnection {
                String hiredDate = result.getString("employee_hired_date");
                boolean isSuspended = result.getBoolean("employee_is_suspended");
                
-               System.out.printf("[%d] | %-20s  | %s | %d | %s | %s | %s\n",id,name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
+               System.out.printf("%-4s | %-20s  | %-3s | %-4d | %-20s | %-15s | %s\n","[" + id + "]",name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
            }
            
            con.close();
@@ -410,7 +479,7 @@ public class Function extends DBConnection {
                  + "ON employees.position_id = positions.position_id WHERE employee_is_suspended = 1 "
                  + "AND employees.employee_name LIKE '%" + nameFilter + "%' "
                  + "ORDER BY " + availableToSort[sortBy] + " " + (isSortAscending ? "ASC" : "DESC")
-                 + "LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
+                 + " LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
          
          getTotalPage("employees","employee_is_suspended = 1 AND employees.employee_name LIKE '%" + nameFilter + "%'"); // get the total page, pagination can move.
          
@@ -420,6 +489,8 @@ public class Function extends DBConnection {
              state = con.createStatement();
              result = state.executeQuery(query);
              
+             System.out.printf("%-5s | %-20s  | %s | %-4s | %-20s | %-15s | %s\n","ID","NAME","SEX","AGE","POSITION","HIRED DATE", "STATUS");
+             
              while (result.next()) {
                int id = result.getInt("employee_id");
                String name = result.getString("employee_name");
@@ -428,7 +499,7 @@ public class Function extends DBConnection {
                String position = result.getString("position_name");
                String hiredDate = result.getString("employee_hired_date");
                boolean isSuspended = result.getBoolean("employee_is_suspended");
-               System.out.printf("[%d] | %-20s  | %s | %d | %s | %s | %s\n",id,name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
+               System.out.printf("%-4s | %-20s  | %-3s | %-4d | %-20s | %-15s | %s\n","[" + id + "]",name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
                
              }
              
@@ -450,14 +521,13 @@ public class Function extends DBConnection {
                  + " LIMIT " + (rowLimit * rowSpan) + ", " + rowLimit;
          
          getTotalPage("employees","position_id = " + positionId + " AND employees.employee_name LIKE '%" + nameFilter + "%'"); // get the total page, pagination can move.
-         
          try {
              connect();
              
              state = con.createStatement();
              result = state.executeQuery(query);
              
-             System.out.printf("ID | %-20s | SEX | AGE | POSITION | HIRED DATE | STATUS\n","NAME");
+             System.out.printf("%-5s | %-20s  | %s | %-4s | %-20s | %-15s | %s\n","ID","NAME","SEX","AGE","POSITION","HIRED DATE", "STATUS");
              
              while (result.next()) {
                int id = result.getInt("employee_id");
@@ -467,7 +537,7 @@ public class Function extends DBConnection {
                String position = result.getString("position_name");
                String hiredDate = result.getString("employee_hired_date");
                boolean isSuspended = result.getBoolean("employee_is_suspended");
-               System.out.printf("[%d] | %-20s  | %s | %d | %s | %s | %s\n",id,name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
+               System.out.printf("%-4s | %-20s  | %-3s | %-4d | %-20s | %-15s | %s\n","[" + id + "]",name,sex,age,position,hiredDate, (isSuspended ? "SUSPENDED" : ""));
                
              }
              
@@ -534,7 +604,7 @@ public class Function extends DBConnection {
          }
          
         if (dataDisplaying) {
-            System.out.println("\nType [m]More to show more results or [M]more to go back to previous results...");
+            System.out.println("\n--Type [m]More to show more results or [M]more to go back to previous results...");
         }
      }
      
@@ -648,6 +718,54 @@ public class Function extends DBConnection {
          return isSuccess;
      }
      
+    public void updateEmployeeBasicInfo(int employeeId,int toUpdate,String data) {
+        String query = "UPDATE employees SET ";
+        
+        switch (toUpdate) {
+            case 0:
+                System.out.println("Invalid data field!");
+                return;
+            case 1:
+                query += "employee_name = ?";
+                break;
+            case 2:
+                query += "employee_sex = ?";
+                break;
+            case 3:
+                query += "employee_age = ?";
+                break;
+            case 4:
+                query += "position_id = ?";
+                break;
+        }
+        
+        query += " WHERE employee_id = " + employeeId;
+        
+        try {
+            connect();
+            
+            prep = con.prepareStatement(query);
+            
+            switch (toUpdate) {
+                case 1:
+                case 2:
+                    prep.setString(1,data);
+                    break;
+                case 3:
+                case 4:
+                    prep.setInt(1, Integer.parseInt(data));
+                    break;
+            }
+            
+            prep.executeUpdate();
+            
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        
+    }
+     
      //delete api's
      
      /**
@@ -698,4 +816,5 @@ public class Function extends DBConnection {
     public void setFilterName(String filter) {
         nameFilter = filter;
     }
+    
 }

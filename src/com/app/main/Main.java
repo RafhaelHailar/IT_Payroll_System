@@ -16,8 +16,14 @@ public class Main {
     
     public static void main(String[] args) {
         // Starting displays
-        System.out.println("IT Payroll System");
-        System.out.println("*To enter a value start with (\")");
+        System.out.println("**** IT PAYROLL SYSTEM ****");
+        System.out.println("- a console based payroll system.");
+        System.out.println("- to enter a value start the input with (\").");
+        System.out.println("- entering any character that doesn't% starts with (\") is consired as a command.");
+        System.out.println("- enter [q] to quit the program.");
+        System.out.println("- enter [l] to logout.");
+        System.out.println("- enter [b] to go back to previous state / part of the program.");
+        System.out.println("- enter [uu] to undo input.");
         
         View view = new View();     
        // Function function = new Function();
@@ -27,7 +33,7 @@ public class Main {
             view.checkInput();
         }
         
-        System.out.println("\nApplication Quit!");
+        System.out.println("\n* Application Quit!");
     }
     
     public static void quit() {

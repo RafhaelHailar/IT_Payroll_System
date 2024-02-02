@@ -15,6 +15,15 @@ public abstract class InputData {
         this.level = 1;
     }
     
+    public void prevLevel() {
+        int currLevel = this.level;
+        
+        currLevel--;
+        if (currLevel < 1) currLevel = 1;
+        
+        this.level = currLevel;
+    }
+    
     Function function;
     
     // login input data
@@ -33,14 +42,14 @@ public abstract class InputData {
                     try {
                         userId = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     } 
                     this.level++;
                     break;
                 case 2:
                     userPassword = data;
-                    System.out.println("Logging you in......");
+                    System.out.println("\n* Logging you in......");
                     
                     if (Main.getAdminId() == userId) {
                        if (userPassword.equals(Main.getAdminPass())) {
@@ -88,7 +97,7 @@ public abstract class InputData {
                     try {
                         employeeId = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     } 
                     this.level++;
@@ -96,7 +105,7 @@ public abstract class InputData {
                 case 2:
                     try {
                         confirmSuspend = data.toLowerCase().equals("y") || data.toLowerCase().equals("yes");
-                        String prefix = (this.toSuspend ? "S" : "Uns");
+                        String prefix = "* " + (this.toSuspend ? "S" : "Uns");
 
                         if (confirmSuspend) {
                             System.out.println(prefix + "uspending......");
@@ -122,13 +131,13 @@ public abstract class InputData {
         public void suspend() {
             boolean result = function.suspendEmployee(employeeId);
 
-            System.out.println("Suspension " + (result ? "Success" : "Failed") + "!");
+            System.out.println("* Suspension " + (result ? "Success" : "Failed") + "!");
         }
         
         public void unSuspend() {
             boolean result = function.unSuspendEmployee(employeeId);
             
-            System.out.println("Unsuspension " + (result ? "Success" : "Failed") + "!");
+            System.out.println("* Unsuspension " + (result ? "Success" : "Failed") + "!");
         }
     }
     
@@ -159,7 +168,7 @@ public abstract class InputData {
                     char sex = data.charAt(0);
                     
                     if (sex != 'M' && sex != 'F') {
-                      System.out.println("Please enter a valid input ('M' | 'F')!");  
+                      System.out.println("*--*:: Please enter a valid input ('M' | 'F')!");  
                     } else {
                         employeeSex = data.charAt(0);
                         this.level++;
@@ -172,11 +181,11 @@ public abstract class InputData {
                         employeeAge = age;
                         
                         if (age < 0) {
-                            System.out.println("Enter a valid age!");
+                            System.out.println("*--*:: Enter a valid age!");
                             break;
                         }
                     } catch (Exception e) {
-                        System.out.println("Invalid input: " + data + ", please enter a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please enter a valid number!");
                         break;
                     }
                     this.level++;
@@ -188,15 +197,15 @@ public abstract class InputData {
                         
                         // check if the input id is in range
                         if (id < 1 || id > positionIdLimit) {
-                            System.out.println("Enter a number between 1" + "-" + positionIdLimit + "!");
+                            System.out.println("*--*:: Enter a number between 1" + "-" + positionIdLimit + "!");
                             break;
                         }
                     } catch (Exception e) {
-                        System.out.println("Invalid input: " + data + ", please enter a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please enter a valid number!");
                         break;
                     }
                     
-                    System.out.println("Creating employee...");
+                    System.out.println("* Creating employee...");
                     createEmployee();
                     this.level++;
                     break;
@@ -208,9 +217,9 @@ public abstract class InputData {
             boolean creationSuccess = function.addEmployee(employeeName, String.valueOf(employeeSex), employeeAge, positionId, employeePassword);
             
             if (creationSuccess) {
-                System.out.println("Creation Success!");
+                System.out.println("* Creation Success!");
             } else {
-                System.out.println("Creation Failed!");
+                System.out.println("* Creation Failed!");
             }
         }
     }
@@ -230,7 +239,7 @@ public abstract class InputData {
                     try {
                         employeeId = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     } 
                     this.level++;
@@ -240,12 +249,12 @@ public abstract class InputData {
                         confirmDelete = data.toLowerCase().equals("y") || data.toLowerCase().equals("yes");
 
                         if (confirmDelete) {
-                            System.out.println("Deleting......");
+                            System.out.println("* Deleting......");
                             
                             delete();
                             this.level++;
                         } else {
-                            System.out.println("Deleting Cancelled!");
+                            System.out.println("* Deleting Cancelled!");
                             this.clear();
                         }
                         
@@ -260,41 +269,11 @@ public abstract class InputData {
                 boolean isSuccess = function.deleteEmployee(employeeId);
                 
                 if (isSuccess) {
-                    System.out.println("Deletion Success!");
+                    System.out.println("* Deletion Success!");
                 } else {
-                    System.out.println("Deletion Failed!");
+                    System.out.println("* Deletion Failed!");
                 }
             }
-    }
-    
-    //input data for viewing specific employee
-    public static class ToViewEmployeeInputData extends InputData {   
-        private int employeeId;
-        public ToViewEmployeeInputData(Function function) {
-            this.function = function;
-        }
-        
-        public void addData(String data) {
-            switch (this.level) {
-                case 1:  
-                    try {
-                        employeeId = Integer.parseInt(data);
-                    } catch (Exception e ) {
-                        System.out.println("Invalid input: " + employeeId + ", please input a valid number!");
-                    }
-
-                    boolean employeeExists = function.isEmployeeExists(employeeId);
-                    
-                    if (!employeeExists) {
-                        System.out.println("Employee ID: " + employeeId + " does not exist.");
-                    } else {
-                        View.setEmployeeViewing(employeeId);
-                        this.level++;
-                    }
-                    break;
-            }
-        }
-        
     }
     
     //input data for setting employee attendance
@@ -313,7 +292,7 @@ public abstract class InputData {
                     try {
                         employeeId = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + employeeId + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + employeeId + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -322,7 +301,7 @@ public abstract class InputData {
                     try {
                         year = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -333,10 +312,10 @@ public abstract class InputData {
                         int index  = Integer.parseInt(data);
                         month = availableMonths[index - 1];
                     } catch (NumberFormatException e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     } catch (IndexOutOfBoundsException e) {
-                        System.out.println("Please only enter a number between 1 - 12");
+                        System.out.println("*--*:: Please only enter a number between 1 - 12");
                         break;
                     } catch (Exception e) {
                         System.out.println(e);
@@ -350,7 +329,7 @@ public abstract class InputData {
                     try {
                         daysPresent = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -359,7 +338,7 @@ public abstract class InputData {
                     try {
                         daysAbsent = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -368,7 +347,7 @@ public abstract class InputData {
                     try {
                         daysLate = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -378,7 +357,7 @@ public abstract class InputData {
                         hoursLate = Integer.parseInt(data);
                         setAttendance();
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -390,9 +369,9 @@ public abstract class InputData {
             boolean isSuccess = function.setAttendance(employeeId, year, month, daysPresent, daysAbsent, daysLate, hoursLate);
             
             if (isSuccess) {
-                System.out.println("Setting attendance success!...");
+                System.out.println("* Setting attendance success!...");
             } else {
-                System.out.println("Setting attendance failed!...");
+                System.out.println("* Setting attendance failed!...");
             }
             
         }
@@ -413,7 +392,7 @@ public abstract class InputData {
                     try {
                         year = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -423,24 +402,23 @@ public abstract class InputData {
                         int index  = Integer.parseInt(data);
                         month = availableMonths[index - 1];
                     } catch (NumberFormatException e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     } catch (IndexOutOfBoundsException e) {
-                        System.out.println("Please only enter a number between 1 - 12");
+                        System.out.println("*--*:: Please only enter a number between 1 - 12");
                         break;
                     } catch (Exception e) {
                         System.out.println(e);
                         break;
                     }
                        
-                    displaySalaries();
                     this.level++;
                     break;
                 case 3:
                     try {
                         employeeId = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     
@@ -450,14 +428,25 @@ public abstract class InputData {
             }
         }
         
-        public void displaySalaries() {
+        public boolean displaySalaries() {
+            System.out.println(" "); // for spacing
+            System.out.println(" "); // for spacing
+            System.out.println(" "); // for spacing
             System.out.println("********************************************************************");
             System.out.println("*\t\t\t\t\t\t\t\t   *");
             System.out.println("*\t\t     Payroll for "+ month + " " + year + "\t\t            *");
             System.out.println("*\t\t\t\t\t\t\t\t   *");
             System.out.println("********************************************************************");
-            System.out.println("Employee ID\t  Employee Name\t\tNet Salary\tGross Salary");
-            function.displayEmployeeSalary(0, year, month);
+            
+            boolean hasResult = function.displayEmployeeSalary(0, year, month);
+            
+            if (!hasResult) {
+                System.out.println("* Payroll for " + month + " " + year + " have no data!");
+                System.out.println(" "); // for spacing
+                System.out.println(" "); // for spacing
+            }
+            
+            return hasResult;
         }
         
         public void reDisplaySalaries() {
@@ -487,7 +476,7 @@ public abstract class InputData {
                     try {
                         year = Integer.parseInt(data);
                     } catch (Exception e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     }
                     this.level++;
@@ -497,10 +486,10 @@ public abstract class InputData {
                         int index  = Integer.parseInt(data);
                         month = availableMonths[index - 1];
                     } catch (NumberFormatException e ) {
-                        System.out.println("Invalid input: " + data + ", please input a valid number!");
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
                         break;
                     } catch (IndexOutOfBoundsException e) {
-                        System.out.println("Please only enter a number between 1 - 12");
+                        System.out.println("*--*:: Please only enter a number between 1 - 12");
                         break;
                     } catch (Exception e) {
                         System.out.println(e);
@@ -523,6 +512,139 @@ public abstract class InputData {
             this.active = false;
             this.clear();
             View.setDateViewing(year, month);
+        }
+    }
+    
+    public static class UpdateEmployeeInputData extends InputData {
+        private int employeeId;
+        private boolean confirmUpdate;
+        private int toUpdate = 0;
+        private String employeeName,employeeSex;
+        private int employeeAge,positionId,positionIdLimit;
+        
+        public UpdateEmployeeInputData(Function function) {
+            this.function = function;
+        }
+        
+        public void addData(String data) {
+            switch (this.level) {
+                case 1:
+                    try {
+                        employeeId = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    this.level++;
+                    break;
+                case 3:
+                    employeeName = data;
+                    setLevel(8);
+                    break;
+                case 4:
+                    char sex = data.charAt(0);
+                    
+                    if (sex != 'M' && sex != 'F') {
+                      System.out.println("*--*:: Please enter a valid input ('M' | 'F')!");  
+                    } else {
+                        employeeSex = String.valueOf(data.charAt(0));
+                        setLevel(8);
+                    }
+                    break;
+                case 5:
+                    try {
+                        employeeAge = Integer.parseInt(data);
+                    } catch (Exception e ) {
+                        System.out.println("*--*:: Invalid input: " + data + ", please input a valid number!");
+                        break;
+                    }
+                    setLevel(8);
+                    break;
+                case 6:
+                    try {
+                        int id = Integer.parseInt(data);
+                        positionId = id;
+                        
+                        // check if the input id is in range
+                        if (id < 1 || id > positionIdLimit) {
+                            System.out.println("*--*:: Enter a number between 1" + "-" + positionIdLimit + "!");
+                            break;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("*--*:: Invalid input: " + data + ", please enter a valid number!");
+                        break;
+                    }
+                    setLevel(8);
+                    break;
+                case 8:
+                    try {
+                        confirmUpdate = data.toLowerCase().equals("y") || data.toLowerCase().equals("yes");
+
+                        if (confirmUpdate) {
+                            System.out.println("* Updating......");
+                            
+                            update();
+                            this.level++;
+                        } else {
+                            System.out.println("* Updating Cancelled!");
+                            this.clear();
+                        }
+                        
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    break;
+            }
+        }
+        
+        public void update() {
+            String data = "";
+            
+            switch (toUpdate) {
+                case 1:
+                    data = employeeName;
+                    break;
+                case 2:
+                    data = employeeSex;
+                    break;
+                case 3:
+                    data = String.valueOf(employeeAge);
+                    break;
+                case 4:
+                    data = String.valueOf(positionId);
+                    break;
+            }
+            
+            function.updateEmployeeBasicInfo(employeeId,toUpdate,data);
+        }
+        
+        public Employee getEmployeeBasicInfo() {
+            return function.getEmployeeBasicInfo(employeeId);
+        }
+        
+        public void displayEmployeeNotFound() {
+            System.out.println("* Employee with employee id: " + employeeId + " is not found.");
+            this.clear();
+        }
+        
+        public void setLevel(int level) {
+            switch (level) {
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                    toUpdate = level - 2;
+                    break;
+            }
+            this.level = level;
+        }
+        
+        public void setPositionIdLimit(int limit) {
+            positionIdLimit = limit;
+        }
+        
+        public void setToUpdate(int toUpdate) {
+            this.toUpdate = toUpdate;
         }
     }
 }
