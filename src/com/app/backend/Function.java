@@ -314,7 +314,7 @@ public class Function extends DBConnection {
             state = con.createStatement();
             result = state.executeQuery(query);
             
-            System.out.printf("%-20s | %-20s | %-20s | %-20s\n","Employee ID","Employee Name","Net Salary","Gross Salary");
+            System.out.printf("%-20s | %-20s | %-20s | %-20s\n","Employee ID","Employee Name","Gross Salary","Net Salary");
             
             while (result.next()) {
                 int noOfPresent = result.getInt("no_of_present");
@@ -662,9 +662,9 @@ public class Function extends DBConnection {
              prep.setString(3, month);
              result = prep.executeQuery();
              
-             result.next();
-             
-             id = result.getInt("attendance_id");
+             while (result.next()) {
+                id = result.getInt("attendance_id");
+             }
              
              con.close();
          } catch (Exception e) {

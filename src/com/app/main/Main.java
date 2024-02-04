@@ -12,14 +12,14 @@ public class Main {
     private static String adminPass = "admin";
     
     // who currently logged in
-    private static int userID = 1;
+    private static int userID = -1;
     
     public static void main(String[] args) {
         // Starting displays
         System.out.println("**** IT PAYROLL SYSTEM ****");
         System.out.println("- a console based payroll system.");
         System.out.println("- to enter a value start the input with (\").");
-        System.out.println("- entering any character that doesn't% starts with (\") is consired as a command.");
+        System.out.println("- entering any character that doesn't starts with (\") is considered as a command.");
         System.out.println("- enter [q] to quit the program.");
         System.out.println("- enter [l] to logout.");
         System.out.println("- enter [b] to go back to previous state / part of the program.");

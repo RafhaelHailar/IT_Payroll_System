@@ -25,7 +25,7 @@ public class View extends InputHandler{
         EMPLOYEE
     }
     
-    private State currentState = State.MAIN;
+    private State currentState = State.LOGIN;
     private UserType loggedAs = UserType.ADMIN; 
     private ArrayList<State> routeHistory = new ArrayList<State>();
     
@@ -71,7 +71,7 @@ public class View extends InputHandler{
     }
    
     public void render() {
-     //   System.out.println(routeHistory + " current state is: " + currentState);
+        System.out.println(routeHistory + " current state is: " + currentState);
         switch (currentState) {
             case LOGIN:
                 renderLogin();
@@ -152,6 +152,8 @@ public class View extends InputHandler{
         System.out.println(" "); // for spacing
         System.out.println("************** ::MAIN:: **************");
         System.out.println("USER: " + (userID == 1 ? "admin" : userID));
+        System.out.println("- enter [f <character(s)>] to filter your results, that shows only the result with that character.");
+        System.out.println("- enter [s <[0] id, [1] name, [2] age, [3] hired date, [4] pay per day> <1 for ascending, other than 1 descending> to sort the results.");
         System.out.println("- enter [l] to logout.");
         System.out.println("- enter [b] to go back to previous state / part of the program.");
         if (isUserAdmin()) {
@@ -342,7 +344,13 @@ public class View extends InputHandler{
         System.out.println(" "); // for spacing
         System.out.println(" "); // for spacing
         System.out.println(" "); // for spacing
-        System.out.println("************** ::VIEWING EMPLOYEE:: **************");
+        
+        if (loggedAs == UserType.EMPLOYEE) {
+            System.out.println("************** ::YOUR PAYSLIP:: **************");
+        } else {
+            System.out.println("************** ::VIEWING EMPLOYEE:: **************");
+        }
+        
         System.out.println("- [cd] change date, change the payslip viewing with a given date");
         
         if (changeDateInputData.getActive()) {
@@ -363,7 +371,7 @@ public class View extends InputHandler{
                System.out.println("* Data can not retrieve!");
                if (loggedAs == UserType.ADMIN) {
                     View.setEmployeeViewing(-1);
-                    setState(State.TOVIEWEMPLOYEE);
+                    setState(State.TOVIEWSALARIES);
                } else {
                    System.out.println("* Your payroll for " + targetMonth + " " + targetYear + " is not yet processed.");
                }
